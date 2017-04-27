@@ -51,6 +51,7 @@ import 'package:shuttlecock/shuttlecock.dart';
 abstract class Applicative<A> extends Functor<A> {
   /// Applies the functor...
   /// Reminder functor is defined fmap :: (a -> b) -> f a -> f b
+  /// (<*>) :: f (a -> b) -> f a -> f b
   // TODO: Write less lame documentation.
   Applicative<B> app<B>(covariant Applicative<Function1<A, B>> app);
 }
