@@ -8,6 +8,7 @@ export 'src/category_theory/functions.dart';
 export 'src/category_theory/functor.dart';
 export 'src/category_theory/monad.dart';
 export 'src/category_theory/monoid.dart';
+export 'src/instances/continuation.dart';
 export 'src/instances/either.dart';
 export 'src/instances/future_monad.dart';
 export 'src/instances/identity_monad.dart';

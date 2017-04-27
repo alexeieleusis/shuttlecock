@@ -6,6 +6,10 @@ Function1<A, C> compose<A, B, C>(Function1<A, B> f, Function1<B, C> g) =>
 /// returns a function that takes only one paramter of the second type.
 Function1<B, C> curry<A, B, C>(Function2<A, B, C> f, A a) => (b) => f(a, b);
 
+/// Produces a function that evaluates the provided function in the specified
+/// value.
+Function1<Function1<A, R>, R> eval<R, A>(A a) => (f) => f(a);
+
 /// Identity function that returns i
 A identity<A>(A a) => a;
 
