@@ -33,5 +33,5 @@ class Reader<A, B> extends Monad<B> implements Function {
       new Reader((a) => map(f)(a)(a));
 
   @override
-  Reader<A, C> map<C>(Function1<B, C> f) => new Reader(compose(run, f));
+  Reader<A, C> map<C>(Function1<B, C> f) => new Reader(compose(f, run));
 }

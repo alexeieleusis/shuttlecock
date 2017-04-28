@@ -11,6 +11,62 @@ import '../testing_functions.dart';
 void main() {
   // For some weird reason this has to go first, otherwise laws group fails.
   group('applicative', () {
+    group('applicative', () {
+      test('pure identity', () async {
+        // ignore: omit_local_variable_types
+        final StreamMonad<Function1<String, String>> pureIdentity =
+            _returnMonad(identity);
+
+        expect(await _returnMonad(helloWorld).app(pureIdentity).toList(),
+            await _returnMonad(helloWorld).toList());
+      });
+
+      test('pure f app pure x', () async {
+        final pureStringToLength = _returnMonad(stringToLength);
+        final monadInstance = _returnMonad(helloWorld);
+
+        expect(await monadInstance.app(pureStringToLength).toList(),
+            await _returnMonad(stringToLength(helloWorld)).toList());
+      });
+
+      test('interchange', () async {
+        final pureEval = _returnMonad(eval(helloWorld));
+
+        final monadInstance = _returnMonad(helloWorld);
+
+        expect(await monadInstance.app(_returnMonad(stringToLength)).toList(),
+            await _returnMonad(stringToLength).app(pureEval).toList());
+      });
+
+      test('composition', () async {
+        final pureStringToLength = _returnMonad(stringToLength);
+        final pureDecorate = _returnMonad(decorate);
+        final pureComposition = _returnMonad(compose(decorate, stringToLength));
+
+        expect(
+            await _returnMonad(helloWorld)
+                .app(pureStringToLength)
+                .app(pureDecorate)
+                .toList(),
+            await _returnMonad(helloWorld).app(pureComposition).toList());
+        expect(
+            await _returnMonad(helloWorld)
+                .app(pureStringToLength
+                    .app(_returnMonad(curry(compose, decorate))))
+                .toList(),
+            await _returnMonad(helloWorld)
+                .app(pureStringToLength)
+                .app(pureDecorate)
+                .toList());
+      });
+
+      test('map apply', () async {
+        final pureStringToLength = _returnMonad(stringToLength);
+        expect(await _returnMonad(helloWorld).app(pureStringToLength).toList(),
+            await _returnMonad(helloWorld).map(stringToLength).toList());
+      });
+    });
+
     test('apply', () async {
       final stream = new StreamMonad(
           new Stream.fromIterable([1, 2, 3]).asBroadcastStream());
@@ -38,7 +94,7 @@ void main() {
     test('map composition', () async {
       final bound = _returnMonad(helloWorld).map(stringToLength).map(decorate);
       final composedBound =
-          _returnMonad(helloWorld).map(compose(stringToLength, decorate));
+          _returnMonad(helloWorld).map(compose(decorate, stringToLength));
 
       final actual = await bound.toList();
       final expected = await composedBound.toList();
