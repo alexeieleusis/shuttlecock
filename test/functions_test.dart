@@ -14,7 +14,7 @@ void main() {
     test('after function does nothing', () {
       num halves(int x) => x / 2;
       expect(halves is Function1, isTrue);
-      final idAfterHalves = compose(halves, identity);
+      final idAfterHalves = compose(identity, halves);
       for (var i = 0; i < 100; i++) {
         expect(halves(i), equals(idAfterHalves(i)));
       }

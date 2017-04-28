@@ -1,5 +1,5 @@
 /// Composes [f] with [g].
-Function1<A, C> compose<A, B, C>(Function1<A, B> f, Function1<B, C> g) =>
+Function1<A, C> compose<A, B, C>(Function1<B, C> g, Function1<A, B> f) =>
     (a) => g(f(a));
 
 /// Given a function that takes two parameters and a reference of the first type

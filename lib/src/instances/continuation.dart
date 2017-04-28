@@ -23,7 +23,7 @@ class Continuation<R, A> extends Monad<A> implements Function {
   @override
   Continuation<R, B> app<B>(Continuation<R, Function1<A, B>> app) =>
       new Continuation<R, B>(
-          (k) => _runCont((a) => app((f) => compose(f, k)(a))));
+          (k) => _runCont((a) => app((f) => compose(k, f)(a))));
   // k :: B -> R
   // runCont :: (A -> R) -> R
   // app :: ((A -> B) -> R) -> R
@@ -49,7 +49,7 @@ class Continuation<R, A> extends Monad<A> implements Function {
 
   @override
   Continuation<R, B> map<B>(Function1<A, B> f) =>
-      new Continuation<R, B>((k) => _runCont(compose(f, k)));
+      new Continuation<R, B>((k) => _runCont(compose(k, f)));
   // k :: B -> R
   // f :: A -> B
   // compose(f, k) :: A -> R

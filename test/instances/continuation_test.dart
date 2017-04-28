@@ -5,6 +5,55 @@ import '../testing_functions.dart';
 
 void main() {
   group('laws', () {
+    group('applicative', () {
+      test('pure identity', () {
+        // ignore: omit_local_variable_types
+        final Continuation<String, Function1<String, String>> pureIdentity =
+            _returnMonad(identity);
+        final monadInstance = _returnMonad(helloWorld);
+
+        expect(monadInstance.app(pureIdentity)(_twice), monadInstance(_twice));
+      });
+
+      test('pure f app pure x', () {
+        final pureStringToLength = _returnMonad(stringToLength);
+        final monadInstance = _returnMonad(helloWorld);
+
+        expect(monadInstance.app(pureStringToLength)(_twice),
+            _returnMonad(stringToLength(helloWorld))(_twice));
+      });
+
+      test('interchange', () {
+        final pureStringToLength = _returnMonad(stringToLength);
+        final pureEval = _returnMonad(eval(helloWorld));
+        final monadInstance = _returnMonad(helloWorld);
+
+        expect(monadInstance.app(pureStringToLength)(_twice),
+            pureStringToLength.app(pureEval)(_twice));
+      });
+
+      test('composition', () {
+        final pureStringToLength = _returnMonad(stringToLength);
+        final pureDecorate = _returnMonad(decorate);
+        final pureComposition = _returnMonad(compose(decorate, stringToLength));
+        final monadInstance = _returnMonad(helloWorld);
+
+        expect(monadInstance.app(pureStringToLength).app(pureDecorate)(_twice),
+            monadInstance.app(pureComposition)(_twice));
+        expect(
+            monadInstance.app(pureStringToLength
+                .app(_returnMonad(curry(compose, decorate))))(_twice),
+            monadInstance.app(pureStringToLength).app(pureDecorate)(_twice));
+      });
+
+      test('map apply', () {
+        final pureStringToLength = _returnMonad(stringToLength);
+        final monadInstance = _returnMonad(helloWorld);
+        expect(monadInstance.app(pureStringToLength)(_twice),
+            monadInstance.map(stringToLength)(_twice));
+      });
+    });
+
     test('map identity', () {
       final monadInstance = _returnMonad(helloWorld);
       final bound = monadInstance.map(identity);
@@ -16,7 +65,7 @@ void main() {
       final monadInstance = _returnMonad(helloWorld);
       final bound = monadInstance.map(stringToLength).map(decorate);
       final composedBound =
-          monadInstance.map(compose(stringToLength, decorate));
+          monadInstance.map(compose(decorate, stringToLength));
 
       expect(bound(_twice), composedBound(_twice));
     });
