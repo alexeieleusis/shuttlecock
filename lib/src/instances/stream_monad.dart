@@ -125,12 +125,18 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   @override
   FutureMonad<S> fold<S>(
           // ignore: avoid_annotating_with_dynamic
-          dynamic initialValue, dynamic combine(dynamic previous, T element)) =>
+          dynamic initialValue,
+          // ignore: avoid_annotating_with_dynamic
+          dynamic combine(dynamic previous, T element)) =>
       new FutureMonad(_stream.fold(initialValue, combine));
 
   @override
   FutureMonad forEach(void action(T element)) =>
       new FutureMonad(_stream.forEach(action));
+
+  @override
+  Stream<GroupedEvents<K, T>> groupBy<K>(K key(T event)) =>
+      _stream.groupBy(key);
 
   @override
   // ignore: avoid_annotating_with_dynamic

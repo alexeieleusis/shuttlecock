@@ -54,4 +54,10 @@ class Continuation<R, A> extends Monad<A> implements Function {
   // f :: A -> B
   // compose(f, k) :: A -> R
   // _runCont :: (A -> R) -> R
+
+  /// callCC :: ((a -> Cont r b) -> Cont r a) -> Cont r a
+  /// callCC f = cont $ \h -> runCont (f (\a -> cont $ \_ -> h a)) h
+  static Continuation<R, A> callCC<R, A, B>(
+          Function1<Function1<A, Continuation<R, B>>, Continuation<R, A>> f) =>
+      new Continuation((h) => f((a) => new Continuation((_) => h(a)))(h));
 }

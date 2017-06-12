@@ -101,6 +101,40 @@ void main() {
       expect(bound(_twice), composedBound(_twice));
     });
   });
+
+  group('https://en.wikibooks.org/wiki/Haskell/Continuation_passing_style', () {
+    test('pythagoras', () {
+      int add(int x, int y) => x + y;
+      int square(int x) => x * x;
+      // return<int, int>
+      Continuation<int, int> addCont(int x, int y) =>
+          new Continuation(eval(add(x, y)));
+      Continuation<int, int> squareCont(int x) =>
+          new Continuation(eval(square(x)));
+
+      // pythagoras_cont :: Int -> Int -> Cont r Int
+      // pythagoras_cont x y = do
+      //   x_squared <- square_cont x
+      //   y_squared <- square_cont y
+      //   add_cont x_squared y_squared
+      Continuation<int, int> pythagorasCont(int x, int y) => squareCont(x)
+          .flatMap((x1) => squareCont(y).flatMap((y1) => addCont(x1, y1)));
+
+      expect(pythagorasCont(3, 4)(identity as Function1<int, int>), 25);
+      expect(pythagorasCont(3, 4)(_timesTwo), 50);
+      expect(pythagorasCont(5, 12)(identity as Function1<int, int>), 169);
+    });
+  });
+
+  group('callCC', () {
+    test('square', () {
+      Continuation<int, int> _callCCSquare(int n) =>
+          Continuation.callCC<int, int, int>((f) => f(n * n));
+
+      expect(_callCCSquare(2)(identity as Function1<int, int>), 4);
+      expect(_callCCSquare(3)(_timesTwo), 18);
+    });
+  });
 }
 
 Continuation<String, int> _f(String s) =>
@@ -111,5 +145,7 @@ Continuation<String, String> _g(int s) =>
 
 Continuation<String, T> _returnMonad<T>(T value) =>
     new Continuation<String, T>(eval(value));
+
+int _timesTwo(int x) => 2 * x;
 
 String _twice(s) => '$s$s';
