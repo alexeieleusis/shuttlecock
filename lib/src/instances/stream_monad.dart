@@ -135,10 +135,6 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
       new FutureMonad(_stream.forEach(action));
 
   @override
-  Stream<GroupedEvents<K, T>> groupBy<K>(K key(T event)) =>
-      _stream.groupBy(key);
-
-  @override
   // ignore: avoid_annotating_with_dynamic
   StreamMonad<T> handleError(Function onError, {bool test(dynamic error)}) =>
       new StreamMonad(_stream.handleError(onError, test: test));

@@ -189,6 +189,13 @@ void main() {
       expect(sheep.grandParent, new Option(grandFather));
       expect(sheep.maternalGrandFather, new Option(greatGrandFather));
     });
+
+    test('composition with map and intermediary null', () {
+      int fNull(int i) => null; // ignore: avoid_returning_null
+      String constHello (int i) => 'Hello';
+      final o = new Option<int>(0).map(fNull).map(constHello);
+      expect(o, new Option('Hello'));
+    });
   });
 }
 
