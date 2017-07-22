@@ -136,9 +136,29 @@ void main() {
       final monoid = option + some;
       expect(monoid, some);
     });
+
+    test('gerOrElse', () {
+      expect(option.getOrElse(42), 42);
+    });
+
+    test('orElse', () {
+      expect(option.orElse(() => Option.of(42)), Option.of(42));
+    });
+
+    test('orNull', () {
+      expect(option.orNull, null);
+    });
+
+    test('isEmpty', () {
+      expect(option.isEmpty, true);
+    });
+
+    test('isDefined', () {
+      expect(option.isDefined, false);
+    });
   });
 
-  group('some', () {
+  group('Some', () {
     Option<int> option;
 
     setUp(() {
@@ -180,6 +200,26 @@ void main() {
       expect(monoid, option);
     });
 
+    test('gerOrElse', () {
+      expect(option.getOrElse(42), 7);
+    });
+
+    test('orElse', () {
+      expect(option.orElse(() => Option.of(42)), Option.of(7));
+    });
+
+    test('orNull', () {
+      expect(option.orNull, 7);
+    });
+
+    test('isEmpty', () {
+      expect(option.isEmpty, false);
+    });
+
+    test('isDefined', () {
+      expect(option.isDefined, true);
+    });
+
     test('sheep example', () {
       final greatGrandFather = new Sheep();
       final grandFather = new Sheep(father: greatGrandFather);
@@ -192,7 +232,7 @@ void main() {
 
     test('composition with map and intermediary null', () {
       int fNull(int i) => null; // ignore: avoid_returning_null
-      String constHello (int i) => 'Hello';
+      String constHello(int i) => 'Hello';
       final o = new Option<int>(0).map(fNull).map(constHello);
       expect(o, new Option('Hello'));
     });

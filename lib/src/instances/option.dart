@@ -78,6 +78,9 @@ class None<T> extends Option<T> {
   void forEach(void f(T element)) {}
 
   @override
+  T getOrElse(T orElse) => orElse;
+
+  @override
   String join([String separator = ""]) => '';
 
   @override
@@ -91,6 +94,9 @@ class None<T> extends Option<T> {
 
   @override
   Option<S> map<S>(Function1<T, S> f) => new None<S>();
+
+  @override
+  Option<T> orElse(Function0<Option<T>> f) => f();
 
   @override
   T reduce(T combine(T value, T element)) {
@@ -151,11 +157,20 @@ abstract class Option<T> extends Monad<T>
 
   Option._();
 
+  /// Returns true if the instance is of the form Some v, false otherwise.
+  bool get isDefined => !isEmpty;
+
   @override
   bool get isNotEmpty => !isEmpty;
 
   @override
   int get length => isEmpty ? 0 : 1;
+
+  /// Returns Option's value if there is any or null if the instance is None.
+  /// As with other language implementations, this method is provided to make
+  /// easier the integration with imperative code but it is important to note
+  /// that using null values should be avoided precisely using this Monad.
+  T get orNull => getOrElse(null);
 
   /// Operation of the monoid.
   @override
@@ -171,8 +186,22 @@ abstract class Option<T> extends Monad<T>
   @override
   Option<S> flatMap<S>(Function1<T, Option<S>> f);
 
+  /// Return the wrapped value or a given default if the instance is None.
+  T getOrElse(T orElse);
+
   @override
   Option<S> map<S>(Function1<T, S> f);
+
+  /// Returns the same instance or the result of the evaluation of a given
+  /// function if the instance is None.
+  Option<T> orElse(Function0<Option<T>> f);
+
+  /// A convenience static method to create Nones.
+  static Option<T> empty<T>() => new None();
+
+  /// TODO: Should we promote this somehow to Functor definition?
+  /// A convenience static method to create new Options.
+  static Option<T> of<T>(T value) => new Some(value);
 }
 
 /// Container that is guaranteed to contain a value (non null).
@@ -261,6 +290,9 @@ class Some<T> extends Option<T> {
   }
 
   @override
+  T getOrElse(T orElse) => value;
+
+  @override
   String join([String separator = ""]) => value.toString();
 
   @override
@@ -276,6 +308,9 @@ class Some<T> extends Option<T> {
 
   @override
   Option<S> map<S>(Function1<T, S> f) => new Some<S>(f(value));
+
+  @override
+  Option<T> orElse(Function0<Option<T>> f) => this;
 
   @override
   T reduce(T combine(T value, T element)) => value;
