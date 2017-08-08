@@ -64,7 +64,10 @@ class IterableMonad<T> extends Monad<T> implements Iterable<T>, Monoid<T> {
   @override
   bool every(bool f(T element)) => _data.every(f);
 
+  /// This method is implemented only to comply with the [Iterable] but it is
+  /// recommended to use flatMap instead.
   @override
+  @Deprecated('Use flatMap instead')
   Iterable<S> expand<S>(Iterable<S> f(T element)) => _data.expand(f);
 
   @override
