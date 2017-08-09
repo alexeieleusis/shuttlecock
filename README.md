@@ -1,3 +1,5 @@
+<img src="icon.png" align="right" />
+
 # shuttlecock
 
 An algebraic defined types library inspired by the course [Category theory for programmers by Bartosz Milewski](https://www.youtube.com/playlist?list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_).
