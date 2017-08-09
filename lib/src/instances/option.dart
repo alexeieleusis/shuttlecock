@@ -2,13 +2,8 @@ import 'package:shuttlecock/shuttlecock.dart';
 
 /// Represents the absence of the value. This is the Zero of the monoid.
 class None<T> extends Option<T> {
-  /// Value that represents the
-  static final None<Null> none = new None<Null>._();
-
-  /// This class should only have one instance provided by this constructor.
-  factory None() => none;
-
-  None._() : super._();
+  /// All nones are equal :P
+  None() : super._();
 
   @override
   T get first {
@@ -41,7 +36,7 @@ class None<T> extends Option<T> {
   bool any(bool f(T element)) => false;
 
   @override
-  Option<S> app<S>(Option<Function1<T, S>> app) => none;
+  Option<S> app<S>(Option<Function1<T, S>> app) => new None();
 
   @override
   bool contains(Object element) => false;
@@ -56,7 +51,7 @@ class None<T> extends Option<T> {
 
   @override
   @Deprecated('Use flatMap instead')
-  Option<S> expand<S>(Iterable<S> f(T element)) => None.none;
+  Option<S> expand<S>(Iterable<S> f(T element)) => new None();
 
   @override
   T firstWhere(bool test(T element), {T orElse()}) {
@@ -68,7 +63,7 @@ class None<T> extends Option<T> {
   }
 
   @override
-  Option<S> flatMap<S>(Function1<T, Option<S>> f) => None.none;
+  Option<S> flatMap<S>(Function1<T, Option<S>> f) => new None();
 
   @override
   S fold<S>(S initialValue, S combine(S previousValue, T element)) =>
@@ -76,6 +71,9 @@ class None<T> extends Option<T> {
 
   @override
   void forEach(void f(T element)) {}
+
+  @override
+  T getOrElse(T orElse) => orElse;
 
   @override
   String join([String separator = ""]) => '';
@@ -91,6 +89,9 @@ class None<T> extends Option<T> {
 
   @override
   Option<S> map<S>(Function1<T, S> f) => new None<S>();
+
+  @override
+  Option<T> orElse(Function0<Option<T>> f) => f();
 
   @override
   T reduce(T combine(T value, T element)) {
@@ -143,7 +144,7 @@ abstract class Option<T> extends Monad<T>
   /// return None.
   factory Option(T value) {
     if (value == null) {
-      return None.none;
+      return new None();
     }
 
     return new Some(value);
@@ -151,11 +152,20 @@ abstract class Option<T> extends Monad<T>
 
   Option._();
 
+  /// Returns true if the instance is of the form Some v, false otherwise.
+  bool get isDefined => !isEmpty;
+
   @override
   bool get isNotEmpty => !isEmpty;
 
   @override
   int get length => isEmpty ? 0 : 1;
+
+  /// Returns Option's value if there is any or null if the instance is None.
+  /// As with other language implementations, this method is provided to make
+  /// easier the integration with imperative code but it is important to note
+  /// that using null values should be avoided precisely using this Monad.
+  T get orNull => getOrElse(null);
 
   /// Operation of the monoid.
   @override
@@ -171,8 +181,22 @@ abstract class Option<T> extends Monad<T>
   @override
   Option<S> flatMap<S>(Function1<T, Option<S>> f);
 
+  /// Return the wrapped value or a given default if the instance is None.
+  T getOrElse(T orElse);
+
   @override
   Option<S> map<S>(Function1<T, S> f);
+
+  /// Returns the same instance or the result of the evaluation of a given
+  /// function if the instance is None.
+  Option<T> orElse(Function0<Option<T>> f);
+
+  /// A convenience static method to create Nones.
+  static Option<T> empty<T>() => new None<T>();
+
+  /// TODO: Should we promote this somehow to Functor definition?
+  /// A convenience static method to create new Options.
+  static Option<T> of<T>(T value) => new Some(value);
 }
 
 /// Container that is guaranteed to contain a value (non null).
@@ -261,6 +285,9 @@ class Some<T> extends Option<T> {
   }
 
   @override
+  T getOrElse(T orElse) => value;
+
+  @override
   String join([String separator = ""]) => value.toString();
 
   @override
@@ -278,6 +305,9 @@ class Some<T> extends Option<T> {
   Option<S> map<S>(Function1<T, S> f) => new Some<S>(f(value));
 
   @override
+  Option<T> orElse(Function0<Option<T>> f) => this;
+
+  @override
   T reduce(T combine(T value, T element)) => value;
 
   @override
@@ -290,16 +320,16 @@ class Some<T> extends Option<T> {
   }
 
   @override
-  Option<T> skip(int count) => count == 0 ? this : None.none;
+  Option<T> skip(int count) => count == 0 ? this : new None();
 
   @override
-  Option<T> skipWhile(bool test(T value)) => test(value) ? None.none : this;
+  Option<T> skipWhile(bool test(T value)) => test(value) ? new None() : this;
 
   @override
-  Option<T> take(int count) => count >= 1 ? this : None.none;
+  Option<T> take(int count) => count >= 1 ? this : new None();
 
   @override
-  Option<T> takeWhile(bool test(T value)) => test(value) ? this : None.none;
+  Option<T> takeWhile(bool test(T value)) => test(value) ? this : new None();
 
   @override
   List<T> toList({bool growable: true}) => [value].toList(growable: growable);
@@ -311,5 +341,5 @@ class Some<T> extends Option<T> {
   String toString() => 'Some $value';
 
   @override
-  Option<T> where(bool test(T element)) => test(value) ? this : None.none;
+  Option<T> where(bool test(T element)) => test(value) ? this : new None();
 }

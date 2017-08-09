@@ -24,6 +24,10 @@ Function1<A, B> memoize<A, B>(Function1<A, B> f) {
 /// Arity 1 functions that return the same type that they take.
 typedef A EndoFunction<A>(A a);
 
+/// Generic definition for functions of arity 0 used as a way to provide lazy
+/// calculations in some operations.
+typedef A Function0<A>();
+
 /// Generic definition for functions of arity 1. Strictly speaking all functions
 /// should adhere to this typedef, different signatures should be used only as
 /// a more convenient way to express them.
