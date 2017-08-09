@@ -236,6 +236,13 @@ void main() {
       final o = new Option<int>(0).map(fNull).map(constHello);
       expect(o, new Option('Hello'));
     });
+
+    test('for all B < A Some<B>(b) == Some<A>(b)', () {
+      final num b = 4;
+      // ignore: omit_local_variable_types
+      final int c = 4;
+      expect(new Some<num>(b), new Some<int>(c));
+    });
   });
 }
 
