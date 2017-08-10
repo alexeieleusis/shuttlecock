@@ -114,6 +114,13 @@ class Failure<T> extends Try<T> {
   Try<T> orElse(Function0<Try<T>> f) => f();
 
   @override
+  Try<T> recover(Function onFailure) => new Try(() => onFailure(error));
+
+  @override
+  Try<T> recoverWith(Function1<Exception, Try<T>> onFailure) =>
+      onFailure(error);
+
+  @override
   T reduce(T combine(T value, T element)) {
     throw new StateError("Too few elements");
   }
@@ -142,13 +149,23 @@ class Failure<T> extends Try<T> {
   Try<T> takeWhile(bool test(T value)) => this;
 
   @override
+  Either<Exception, T> toEither() => new Left(error);
+
+  @override
   List<T> toList({bool growable: true}) => [];
+
+  @override
+  Option<T> toOption() => Option.empty<T>();
 
   @override
   Set<T> toSet() => new Set.identity();
 
   @override
   String toString() => 'Failure{error: $error, stackTrace: $stackTrace}';
+
+  @override
+  Try<T> transform(Function1<T, Try<T>> f, Function1<Exception, Try<T>> g) =>
+      recoverWith(g);
 
   @override
   Try<T> where(bool test(T element)) => this;
@@ -271,6 +288,12 @@ class Success<T> extends Try<T> {
   Try<T> orElse(Function0<Try<T>> f) => this;
 
   @override
+  Try<T> recover(Function onFailure) => this;
+
+  @override
+  Try<T> recoverWith(Function1<Exception, Try<T>> onFailure) => this;
+
+  @override
   T reduce(T combine(T value, T element)) => value;
 
   @override
@@ -295,13 +318,23 @@ class Success<T> extends Try<T> {
   Try<T> takeWhile(bool test(T value)) => test(value) ? this : new None();
 
   @override
+  Either<Exception, T> toEither() => new Right(value);
+
+  @override
   List<T> toList({bool growable: true}) => [value].toList(growable: growable);
+
+  @override
+  Option<T> toOption() => Option.of(value);
 
   @override
   Set<T> toSet() => new Set.from([value]);
 
   @override
   String toString() => value?.toString() ?? '';
+
+  @override
+  Try<T> transform(Function1<T, Try<T>> f, Function1<Exception, Try<T>> g) =>
+      flatMap(f);
 
   @override
   Try<T> where(bool test(T element)) => test(value) ? this : new None();
@@ -321,11 +354,17 @@ abstract class Try<T> extends Monad<T> implements Monoid<T>, IterableMonad<T> {
 
   Try._();
 
-  /// Returns true if the instance is of the form Some v, false otherwise.
+  /// Returns true if the instance is a success, false otherwise.
   bool get isDefined => !isEmpty;
+
+  /// Returns false if the instance is a success, false otherwise.
+  bool get isFailure => isEmpty;
 
   @override
   bool get isNotEmpty => !isEmpty;
+
+  /// Returns true if the instance is a success, false otherwise.
+  bool get isSuccess => !isEmpty;
 
   @override
   int get length => isEmpty ? 0 : 1;
@@ -358,6 +397,25 @@ abstract class Try<T> extends Monad<T> implements Monoid<T>, IterableMonad<T> {
   /// Returns the same instance or the result of the evaluation of a given
   /// function if the instance is None.
   Try<T> orElse(Function0<Try<T>> f);
+
+  /// Applies a function to the exception if failure or return the same
+  /// instance if success. Similar to map but acting on Exceptions
+  Try<T> recover(Function1<Exception, T> onFailure);
+
+  /// Applies a function to the exception if failure or return the same
+  /// instance if success. Similar to flatMap but acting on Exceptions
+  Try<T> recoverWith(Function1<Exception, Try<T>> onFailure);
+
+  /// Returns a Right with the value if success or Left with an exception in
+  /// case of failure
+  Either<Exception, T> toEither();
+
+  /// Returns an option with the value if success or None in case of failure
+  Option<T> toOption();
+
+  /// Returns the result of f if success or the result of g if failure. Similar
+  /// to apply flatMap . recoverWith.
+  Try<T> transform(Function1<T, Try<T>> f, Function1<Exception, Try<T>> g);
 
   /// Convenience method to create a [Failure].
   static Try<T> fail<T>(Exception exception, StackTrace stackTrace) =>

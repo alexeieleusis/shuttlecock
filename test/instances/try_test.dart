@@ -106,9 +106,11 @@ void main() {
 
   group('Failure', () {
     Try<int> tryMe;
+    Exception ex;
 
     setUp(() {
-      tryMe = new Try<int>(() => throw new Exception('what'));
+      ex = new Exception('what');
+      tryMe = new Try<int>(() => throw ex);
     });
 
     test('constructor', () {
@@ -140,6 +142,31 @@ void main() {
       final success = new Try<int>(() => 7);
       final monoid = tryMe + success;
       expect(monoid, success);
+    });
+
+    test('to Option', () {
+      final option = tryMe.toOption();
+      expect(option, Option.empty<int>());
+    });
+
+    test('to Either', () {
+      final either = tryMe.toEither();
+      expect(either, new Left(ex));
+    });
+
+    test('recover', () {
+      final success = tryMe.recover((e) => 42);
+      expect(success, new Try<int>(() => 42));
+    });
+
+    test('recoverWith', () {
+      final success = tryMe.recoverWith((e) => new Try(() => 42));
+      expect(success, new Try<int>(() => 42));
+    });
+
+    test('transform', () {
+      final success = tryMe.transform((t) => Try.of(t + 1), (e) => Try.of(9));
+      expect(success, Try.of(9));
     });
   });
 
@@ -186,6 +213,31 @@ void main() {
       final success = new Try<int>(() => 7);
       final monoid = tryMe + success;
       expect(monoid, tryMe);
+    });
+
+    test('to Option', () {
+      final option = tryMe.toOption();
+      expect(option, Option.of(7));
+    });
+
+    test('to Either', () {
+      final either = tryMe.toEither();
+      expect(either, new Right(7));
+    });
+
+    test('recover', () {
+      final success = tryMe.recover((e) => 42);
+      expect(success, tryMe);
+    });
+
+    test('recoverWith', () {
+      final success = tryMe.recoverWith((e) => new Try(() => 42));
+      expect(success, tryMe);
+    });
+
+    test('transform', () {
+      final success = tryMe.transform((t) => Try.of(t + 1), (e) => Try.of(9));
+      expect(success, Try.of(8));
     });
   });
 }
