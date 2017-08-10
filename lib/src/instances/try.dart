@@ -114,7 +114,8 @@ class Failure<T> extends Try<T> {
   Try<T> orElse(Function0<Try<T>> f) => f();
 
   @override
-  Try<T> recover(Function onFailure) => new Try(() => onFailure(error));
+  Try<T> recover(Function1<Exception, T> onFailure) =>
+      new Try(() => onFailure(error));
 
   @override
   Try<T> recoverWith(Function1<Exception, Try<T>> onFailure) =>
