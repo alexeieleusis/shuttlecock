@@ -76,7 +76,7 @@ class None<T> extends Option<T> {
   T getOrElse(T orElse) => orElse;
 
   @override
-  String join([String separator = ""]) => '';
+  String join([String separator = '']) => '';
 
   @override
   T lastWhere(bool test(T element), {T orElse()}) {
@@ -98,7 +98,6 @@ class None<T> extends Option<T> {
     throw new StateError("Too few elements");
   }
 
-  // TODO: implement single
   @override
   T singleWhere(bool test(T element)) {
     throw new StateError("No element");
