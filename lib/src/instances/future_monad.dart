@@ -42,7 +42,7 @@ class FutureMonad<T> extends Monad<T> implements Future<T> {
       new FutureMonad._wrapped(_future.then((w) => w.map(f)));
 
   @override
-  FutureMonad<S> then<S>(FutureOr onValue(T value), {Function onError}) =>
+  FutureMonad<S> then<S>(FutureOr<S> onValue(T value), {Function onError}) =>
       new FutureMonad(
           _future.then((w) => w.value).then(onValue, onError: onError));
 
