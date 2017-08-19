@@ -104,6 +104,15 @@ void main() {
 
       expect(await bound, await composedBound);
     });
+
+    test('flatmap chained', () async {
+      final future = new FutureMonad.of(new FutureMonad.of(1));
+      expect(await future.flatMap((x) => new FutureMonad.of(x is int)), false);
+      expect(await future.flatMap((x) => new FutureMonad.of(x is FutureMonad)),
+          true);
+      // ignore: unrelated_type_equality_checks
+      expect(await future.flatMap((x) => new FutureMonad.of(x == 1)), false);
+    });
   });
 }
 
