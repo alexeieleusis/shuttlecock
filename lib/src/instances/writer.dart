@@ -1,9 +1,9 @@
 import 'package:shuttlecock/shuttlecock.dart';
 
-/// A writer monad parameterized by the type [W] of output to accumulate.
+/// A writer monad parametrized by the type [W] of output to accumulate.
 ///
 /// The return function produces the output [Monoid].zero, while [flatMap]
-/// combines the outputs of the subcomputations using [Monoid.+].
+/// combines the outputs of the sub computations using [Monoid.+].
 class Writer<W extends Monoid, A> extends Monad<A> {
   /// The wrapped value.
   final A value;

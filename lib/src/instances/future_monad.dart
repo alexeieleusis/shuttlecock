@@ -58,12 +58,13 @@ class FutureMonad<T> extends Monad<T> implements Future<T> {
 }
 
 // A wrapper to avoid auto joining in Dart Futures
-class _Wrapper<T> {
+class _Wrapper<T> implements Functor<T> {
   final T _value;
 
   _Wrapper(T value) : _value = value;
 
   T get value => _value;
 
+  @override
   _Wrapper<S> map<S>(Function1<T, S> f) => new _Wrapper(f(value));
 }
