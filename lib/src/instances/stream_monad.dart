@@ -84,8 +84,8 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   StreamMonad<E> asyncMap<E>(FutureOr convert(T event)) =>
       new StreamMonad(_stream.asyncMap(convert));
 
-  /// Combines multiple Observables to create an Observable whose values are
-  /// calculated from the latest values of each of its input Observables.
+  /// Combines this and another to create an stream whose events are
+  /// calculated from the latest values of each stream.
   StreamMonad<E> combineLatest<S, E>(
       StreamMonad<S> other, E combine(T element, S otherElement)) {
     final combined = new StreamController<E>.broadcast();
@@ -136,11 +136,11 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   FutureMonad<bool> contains(Object needle) =>
       new FutureMonad(_stream.contains(needle));
 
-  /// Emits a value from the source Observable only after a particular time span
-  /// determined by another Observable has passed without another source
+  /// Emits a value from this only after a particular time span
+  /// determined by the specified duration has passed without another source
   /// emission.
   StreamMonad<T> debounce(Duration duration) {
-    final controller = new StreamController<T>.broadcast();
+    final controller = new StreamController<T>();
     var shouldClose = false;
     var emitted = false;
     T latest;
@@ -168,10 +168,10 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
     return new StreamMonad(controller.stream);
   }
 
-  /// Emits a value from the source Observable only after a particular time span
-  /// has passed without another source emission.
+  /// Emits an event from this only after a particular time span
+  /// has passed without another emission.
   StreamMonad<T> debounceTime(Duration duration) {
-    final controller = new StreamController<T>.broadcast();
+    final controller = new StreamController<T>();
     Timer timer;
     listen(
         (data) {
@@ -280,12 +280,11 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   @override
   StreamMonad<S> map<S>(Function1<T, S> f) => new StreamMonad(_stream.map(f));
 
-  /// subscribes to each given input Observable (as arguments), and simply
-  /// forwards (without doing any transformation) all the values from all the
-  /// input Observables to the output Observable. The output Observable only
-  /// completes once all input Observables have completed. Any error delivered
-  /// by an input Observable will be immediately emitted on the output
-  /// Observable.
+  /// Subscribes to each this and the provided stream, and simply
+  /// forwards (without doing any transformation) all the values from both to
+  /// the output stream. The output stream only completes once both streams have
+  /// completed. Any error delivered by any of the streams will be immediately
+  /// emitted on the output stream.
   StreamMonad<T> merge(StreamMonad<T> other) {
     final merged = new StreamController<T>.broadcast();
 
