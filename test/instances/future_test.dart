@@ -112,6 +112,7 @@ void main() {
           true);
       // ignore: unrelated_type_equality_checks
       expect(await future.flatMap((x) => new FutureMonad.of(x == 1)), false);
+      expect(await future, 1);
     });
   });
 }

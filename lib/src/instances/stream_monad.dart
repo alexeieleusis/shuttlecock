@@ -9,6 +9,22 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   /// Wraps the provided future.
   StreamMonad(Stream<T> stream) : _stream = stream;
 
+  /// Created an empty stream.
+  StreamMonad.empty() : _stream = const Stream.empty();
+
+  /// Creates a Stream that emits no items immediately emits an error
+  /// notification.
+  StreamMonad.error([Exception exception, StackTrace stackTrace])
+      : _stream = new StreamMonad(
+            (new Future.error(exception, stackTrace).asStream()));
+
+  /// Creates a stream that will never complete.
+  StreamMonad.never() : _stream = (new Completer<T>().future).asStream();
+
+  /// Creates a stream that emits only the provided value and completes.
+  StreamMonad.of(T value)
+      : _stream = new StreamMonad((new Future.value(value)).asStream());
+
   @override
   FutureMonad<T> get first => new FutureMonad(_stream.first);
 
@@ -68,9 +84,108 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   StreamMonad<E> asyncMap<E>(FutureOr convert(T event)) =>
       new StreamMonad(_stream.asyncMap(convert));
 
+  /// Combines this and another to create an stream whose events are
+  /// calculated from the latest values of each stream.
+  StreamMonad<E> combineLatest<S, E>(
+      StreamMonad<S> other, E combine(T element, S otherElement)) {
+    final combined = new StreamController<E>.broadcast();
+
+    T firstElement;
+    S otherFirstElement;
+    StreamSubscription<T> thisSubscription;
+    StreamSubscription<S> otherSubscription;
+
+    // ignore: type_annotate_public_apis, This is not public!
+    void onError(error, StackTrace stacktrace) {
+      if (combined.isClosed) {
+        return;
+      }
+      combined.addError(error, stacktrace);
+    }
+
+    void onDone() {
+      thisSubscription.cancel();
+      otherSubscription.cancel();
+      combined.close();
+    }
+
+    void processT(T element) {
+      firstElement = element;
+      if (combined.isClosed || otherFirstElement == null) {
+        return;
+      }
+      combined.add(combine(firstElement, otherFirstElement));
+    }
+
+    void processS(S element) {
+      otherFirstElement = element;
+      if (combined.isClosed || firstElement == null) {
+        return;
+      }
+      combined.add(combine(firstElement, otherFirstElement));
+    }
+
+    thisSubscription = listen(processT, onError: onError, onDone: onDone);
+    otherSubscription =
+        other.listen(processS, onError: onError, onDone: onDone);
+
+    return new StreamMonad(combined.stream);
+  }
+
   @override
   FutureMonad<bool> contains(Object needle) =>
       new FutureMonad(_stream.contains(needle));
+
+  /// Emits a value from this only after a particular time span
+  /// determined by the specified duration has passed without another source
+  /// emission.
+  StreamMonad<T> debounce(Duration duration) {
+    final controller = new StreamController<T>();
+    var shouldClose = false;
+    var emitted = false;
+    T latest;
+    listen(
+        (data) {
+          latest = data;
+          emitted = true;
+        },
+        onError: controller.addError,
+        onDone: () {
+          shouldClose = true;
+        });
+    new Stream.periodic(duration, (index) => index).listen((index) {
+      if (shouldClose) {
+        scheduleMicrotask(controller.close);
+      }
+      if (!emitted) {
+        return;
+      }
+
+      controller.add(latest);
+      emitted = false;
+    });
+
+    return new StreamMonad(controller.stream);
+  }
+
+  /// Emits an event from this only after a particular time span
+  /// has passed without another emission.
+  StreamMonad<T> debounceTime(Duration duration) {
+    final controller = new StreamController<T>();
+    Timer timer;
+    listen(
+        (data) {
+          timer?.cancel();
+          timer = new Timer(duration, () {
+            controller.add(data);
+          });
+        },
+        onError: controller.addError,
+        onDone: () {
+          new Timer(duration, controller.close);
+        });
+    return new StreamMonad(controller.stream);
+  }
 
   @override
   StreamMonad<T> distinct([bool equals(T previous, T next)]) =>
@@ -123,15 +238,11 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   }
 
   @override
-  FutureMonad<S> fold<S>(
-          // ignore: avoid_annotating_with_dynamic
-          dynamic initialValue,
-          // ignore: avoid_annotating_with_dynamic
-          dynamic combine(dynamic previous, T element)) =>
-      new FutureMonad(_stream.fold(initialValue, combine));
+  FutureMonad<S> fold<S>(S initialValue, S combine(S previous, T element)) =>
+      scan(initialValue, combine).last;
 
   @override
-  FutureMonad forEach(void action(T element)) =>
+  FutureMonad<Null> forEach(void action(T element)) =>
       new FutureMonad(_stream.forEach(action));
 
   @override
@@ -169,6 +280,40 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   @override
   StreamMonad<S> map<S>(Function1<T, S> f) => new StreamMonad(_stream.map(f));
 
+  /// Subscribes to each this and the provided stream, and simply
+  /// forwards (without doing any transformation) all the values from both to
+  /// the output stream. The output stream only completes once both streams have
+  /// completed. Any error delivered by any of the streams will be immediately
+  /// emitted on the output stream.
+  StreamMonad<T> merge(StreamMonad<T> other) {
+    final merged = new StreamController<T>.broadcast();
+
+    StreamSubscription<T> thisSubscription;
+    StreamSubscription<T> otherSubscription;
+    var thisIsDone = false;
+    var otherIsDone = false;
+
+    thisSubscription = listen(merged.add, onError: merged.addError, onDone: () {
+      thisIsDone = true;
+      thisSubscription.cancel();
+      if (!otherIsDone) {
+        return;
+      }
+      merged.close();
+    });
+    otherSubscription =
+        other.listen(merged.add, onError: merged.addError, onDone: () {
+      otherIsDone = true;
+      otherSubscription.cancel();
+      if (!thisIsDone) {
+        return;
+      }
+      merged.close();
+    });
+
+    return new StreamMonad(merged.stream);
+  }
+
   @override
   FutureMonad pipe(StreamConsumer<T> streamConsumer) =>
       new FutureMonad(_stream.pipe(streamConsumer));
@@ -176,6 +321,20 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   @override
   FutureMonad<T> reduce(T combine(T previous, T element)) =>
       new FutureMonad(_stream.reduce(combine));
+
+  /// Builds a special stream that captures all of the items that have been
+  /// emitted, and re-emits them as the first items to any new
+  /// listener.
+  StreamMonad<T> replay({int buffer: 0, Duration window}) =>
+      new _ReplayStream(_stream, buffer: buffer, window: window);
+
+  /// Applies an accumulator function over the this stream, and returns each
+  /// intermediate result. Similar to what fold does on Iterable but eatch
+  /// step is emitted.
+  StreamMonad<S> scan<S>(S initialValue, S combine(S previous, T element)) {
+    var acc = initialValue;
+    return map((t) => acc = combine(acc, t));
+  }
 
   @override
   FutureMonad<T> singleWhere(bool test(T element)) =>
@@ -210,7 +369,71 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   StreamMonad<S> transform<S>(StreamTransformer streamTransformer) =>
       new StreamMonad(_stream.transform(streamTransformer));
 
+  /// Returns a stream that emits items based on applying a function that
+  /// you supply to each item emitted by the source stream, where that
+  /// function returns an option, and then merging those resulting
+  /// streams and emitting the results of this merger. Expand will re-emit
+  /// on the output stream every source value. Then, each output value is
+  /// given to the project function which returns an inner stream to be
+  /// merged on the output stream. Those output values resulting from the
+  /// projection are also given to the project function to produce new output
+  /// values. This is how expand behaves recursively.
+  StreamMonad<T> unfold(Function1<T, Option<T>> projection) {
+    final controller = new StreamController<T>.broadcast();
+    StreamSubscription<T> subscription;
+    subscription = listen((event) {
+      controller.add(event);
+      var option = projection(event);
+      while (option.isNotEmpty) {
+        final value = option.first;
+        controller.add(value);
+        option = projection(value);
+      }
+      controller.close();
+      subscription.cancel();
+    }, onError: (exception, stackTrace) {
+      controller
+        ..addError(exception, stackTrace)
+        ..close();
+    }, onDone: () {
+      controller.close();
+      subscription.cancel();
+    });
+
+    return new StreamMonad(controller.stream);
+  }
+
   @override
   StreamMonad<T> where(bool test(T event)) =>
       new StreamMonad(_stream.where(test));
+}
+
+class _ReplayStream<T> extends StreamMonad<T> {
+  final _replayElements = <T>[];
+
+  _ReplayStream(Stream stream, {int buffer: 0, Duration window})
+      : super(stream) {
+    StreamSubscription<T> subscription;
+    subscription = stream.listen((event) {
+      _replayElements.add(event);
+      while (buffer > 0 && _replayElements.length > buffer) {
+        _replayElements.removeAt(0);
+      }
+      if (window != null) {
+        new Timer(window, () {
+          _replayElements.remove(event);
+        });
+      }
+    }, onDone: () {
+      _replayElements.clear();
+      subscription.cancel();
+    });
+  }
+
+  @override
+  StreamSubscription<T> listen(void onData(T event),
+      {Function onError, void onDone(), bool cancelOnError}) {
+    _replayElements.forEach(onData);
+    return super.listen(onData, onError: onError, onDone: onDone);
+  }
 }

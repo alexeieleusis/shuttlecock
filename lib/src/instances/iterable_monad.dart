@@ -115,19 +115,19 @@ class IterableMonad<T> extends Monad<T> implements Iterable<T>, Monoid<T> {
   T singleWhere(bool test(T element)) => _data.singleWhere(test);
 
   @override
-  Iterable<T> skip(int count) =>
+  IterableMonad<T> skip(int count) =>
       new IterableMonad.fromIterable(_data.skip(count));
 
   @override
-  Iterable<T> skipWhile(bool test(T value)) =>
+  IterableMonad<T> skipWhile(bool test(T value)) =>
       new IterableMonad.fromIterable(_data.skipWhile(test));
 
   @override
-  Iterable<T> take(int count) =>
+  IterableMonad<T> take(int count) =>
       new IterableMonad.fromIterable(_data.take(count));
 
   @override
-  Iterable<T> takeWhile(bool test(T value)) =>
+  IterableMonad<T> takeWhile(bool test(T value)) =>
       new IterableMonad.fromIterable(_data.takeWhile(test));
 
   // TODO: Implement an ListMonad?
@@ -139,6 +139,6 @@ class IterableMonad<T> extends Monad<T> implements Iterable<T>, Monoid<T> {
   Set<T> toSet() => _data.toSet();
 
   @override
-  Iterable<T> where(bool test(T element)) =>
+  IterableMonad<T> where(bool test(T element)) =>
       new IterableMonad.fromIterable(_data.where(test));
 }
