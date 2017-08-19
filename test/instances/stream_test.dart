@@ -262,6 +262,17 @@ void main() {
         expect(collected, [2, 3]);
       });
     });
+
+    group('unfold', () {
+      test('happy path', () async {
+        final original = new StreamMonad(new Stream.fromIterable([1]));
+        final unfolded = await original
+            .unfold((i) => i == 8 ? new None() : new Some(2 * i))
+            .toList();
+
+        expect(unfolded, [1, 2, 4, 8]);
+      });
+    });
   });
 
   group('laws', () {

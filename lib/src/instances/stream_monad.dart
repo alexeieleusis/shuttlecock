@@ -369,6 +369,40 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   StreamMonad<S> transform<S>(StreamTransformer streamTransformer) =>
       new StreamMonad(_stream.transform(streamTransformer));
 
+  /// Returns a stream that emits items based on applying a function that
+  /// you supply to each item emitted by the source stream, where that
+  /// function returns an option, and then merging those resulting
+  /// streams and emitting the results of this merger. Expand will re-emit
+  /// on the output stream every source value. Then, each output value is
+  /// given to the project function which returns an inner stream to be
+  /// merged on the output stream. Those output values resulting from the
+  /// projection are also given to the project function to produce new output
+  /// values. This is how expand behaves recursively.
+  StreamMonad<T> unfold(Function1<T, Option<T>> projection) {
+    final controller = new StreamController<T>.broadcast();
+    StreamSubscription<T> subscription;
+    subscription = listen((event) {
+      controller.add(event);
+      var option = projection(event);
+      while (option.isNotEmpty) {
+        final value = option.first;
+        controller.add(value);
+        option = projection(value);
+      }
+      controller.close();
+      subscription.cancel();
+    }, onError: (exception, stackTrace) {
+      controller
+        ..addError(exception, stackTrace)
+        ..close();
+    }, onDone: () {
+      controller.close();
+      subscription.cancel();
+    });
+
+    return new StreamMonad(controller.stream);
+  }
+
   @override
   StreamMonad<T> where(bool test(T event)) =>
       new StreamMonad(_stream.where(test));
