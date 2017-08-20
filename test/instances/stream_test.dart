@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:shuttlecock/shuttlecock.dart';
 import 'package:shuttlecock/src/instances/stream_monad.dart';
 import 'package:test/test.dart';
+import 'package:tuple/tuple.dart';
 
 import '../testing_functions.dart';
 
@@ -260,6 +261,46 @@ void main() {
         await controller.close();
 
         expect(collected, [2, 3]);
+      });
+    });
+
+    group('unfold', () {
+      test('happy path', () async {
+        final original = new StreamMonad(new Stream.fromIterable([1]));
+        final unfolded = await original
+            .unfold((i) => i == 8 ? new None() : new Some(2 * i))
+            .toList();
+
+        expect(unfolded, [1, 2, 4, 8]);
+      });
+    });
+
+    group('zip', () {
+      test('canonical example', () async {
+        final first = new StreamMonad.generate(3);
+        final second = new StreamMonad.generate(3, (i) => '$i $i');
+
+        final zip = first.zip(second);
+
+        expect(await zip.toList(), [
+          const Tuple2(0, '0 0'),
+          const Tuple2(1, '1 1'),
+          const Tuple2(2, '2 2')
+        ]);
+      });
+    });
+
+    group('bufferCount', () {
+      test('canonical example', () async {
+        final first = new StreamMonad.generate(5);
+
+        final buffered = first.bufferCount(size: 2);
+
+        expect(await buffered.toList(), [
+          new IterableMonad.fromIterable([0, 1]),
+          new IterableMonad.fromIterable([2, 3]),
+          new IterableMonad.fromIterable([4]),
+        ]);
       });
     });
   });
