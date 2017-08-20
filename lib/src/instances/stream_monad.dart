@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:shuttlecock/shuttlecock.dart';
+import 'package:tuple/tuple.dart';
 
 /// Wraps a FutureMonad in the monad interface.
 class StreamMonad<T> extends Monad<T> implements Stream<T> {
@@ -18,12 +19,34 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
       : _stream = new StreamMonad(
             (new Future.error(exception, stackTrace).asStream()));
 
+  /// Creates a stream that generates its elements dynamically from the same
+  /// constructor in the Iterable class.
+  StreamMonad.generate(int count, [T generator(int source)])
+      : _stream =
+            new Stream.fromIterable(new Iterable.generate(count, generator));
+
   /// Creates a stream that will never complete.
   StreamMonad.never() : _stream = (new Completer<T>().future).asStream();
 
   /// Creates a stream that emits only the provided value and completes.
   StreamMonad.of(T value)
       : _stream = new StreamMonad((new Future.value(value)).asStream());
+
+  /// Creates a single subscription controller that emits after the specified
+  /// delay periodically with the specified period.
+  ///
+  /// Default period is one second.
+  factory StreamMonad.timer(
+      {Duration period: const Duration(seconds: 1),
+      T generator(int index),
+      Duration delay: const Duration()}) {
+    // ignore: close_sinks, the controller is a single subscription, can' leak.
+    final controller = new StreamController();
+    new Future.delayed(delay).then((_) {
+      controller.addStream(new Stream.periodic(delay, generator));
+    });
+    return controller.stream;
+  }
 
   @override
   FutureMonad<T> get first => new FutureMonad(_stream.first);
@@ -83,6 +106,28 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   @override
   StreamMonad<E> asyncMap<E>(FutureOr convert(T event)) =>
       new StreamMonad(_stream.asyncMap(convert));
+
+  /// Buffers the events in this stream and emits then in batches of the
+  /// specified size. Default value is a noop.
+  StreamMonad<IterableMonad<T>> bufferCount({int size: 1}) {
+    final controller = new StreamController<IterableMonad<T>>.broadcast();
+    var event = <T>[];
+    listen(
+        (t) {
+          event.add(t);
+          if (event.length == size) {
+            controller.add(new IterableMonad.fromIterable(event));
+            event = <T>[];
+          }
+        },
+        onError: controller.addError,
+        onDone: () {
+          controller
+            ..add(new IterableMonad.fromIterable(event))
+            ..close();
+        });
+    return new StreamMonad(controller.stream);
+  }
 
   /// Combines this and another to create an stream whose events are
   /// calculated from the latest values of each stream.
@@ -406,6 +451,59 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   @override
   StreamMonad<T> where(bool test(T event)) =>
       new StreamMonad(_stream.where(test));
+
+  /// Creates a stream that emits the events produced by this and the provided
+  /// stream in tuples.
+  StreamMonad<Tuple2<T, S>> zip<S>(StreamMonad<S> other) {
+    final controller = new StreamController<Tuple2<T, S>>.broadcast();
+
+    final ts = <T>[];
+    final ss = <S>[];
+
+    StreamSubscription<T> thisSubscription;
+    StreamSubscription<S> otherSubscription;
+
+    void onError(Exception error, StackTrace stacktrace) {
+      if (controller.isClosed) {
+        return;
+      }
+      controller.addError(error, stacktrace);
+    }
+
+    void onDone() {
+      thisSubscription.cancel();
+      otherSubscription.cancel();
+      controller.close();
+    }
+
+    void addEvent(List ts, List ss, StreamController<Tuple2> controller) {
+      final t = ts.removeAt(0);
+      final s = ss.removeAt(0);
+      controller.add(new Tuple2(t, s));
+    }
+
+    void processT(T element) {
+      ts.add(element);
+      if (controller.isClosed || ss.isEmpty) {
+        return;
+      }
+      addEvent(ts, ss, controller);
+    }
+
+    void processS(S element) {
+      ss.add(element);
+      if (controller.isClosed || ts.isEmpty) {
+        return;
+      }
+      addEvent(ts, ss, controller);
+    }
+
+    thisSubscription = listen(processT, onError: onError, onDone: onDone);
+    otherSubscription =
+        other.listen(processS, onError: onError, onDone: onDone);
+
+    return new StreamMonad(controller.stream);
+  }
 }
 
 class _ReplayStream<T> extends StreamMonad<T> {
