@@ -7,7 +7,7 @@ import 'package:tuple/tuple.dart';
 
 import '../testing_functions.dart';
 
-/// These tests are a bit different because of asynchronisity. Structure is the
+/// These tests are a bit different because of asynchronicity. Structure is the
 /// same as in other monad instances.
 void main() {
   // For some weird reason this has to go first, otherwise laws group fails.
@@ -39,8 +39,9 @@ void main() {
     });
 
     test('composition', () async {
-      final pureStringToLength = _returnMonad(stringToLength);
-      final pureDecorate = _returnMonad(decorate);
+      final pureStringToLength =
+          _returnMonad(stringToLength).asBroadcastStream();
+      final pureDecorate = _returnMonad(decorate).asBroadcastStream();
       final pureComposition = _returnMonad(compose(decorate, stringToLength));
 
       expect(
@@ -327,30 +328,36 @@ void main() {
 
     test('map flatMap composition', () async {
       final flatMap = _returnMonad(helloWorld)
-          .flatMap((s) => _returnMonad(stringToLength(s)));
-      final map = _returnMonad(helloWorld).map(stringToLength);
+          .asBroadcastStream()
+          .flatMap((s) => _returnMonad(stringToLength(s)))
+          .asBroadcastStream();
+      final map =
+          _returnMonad(helloWorld).map(stringToLength).asBroadcastStream();
 
       await Future.wait([flatMap.toList(), map.toList()]);
       expect(await flatMap.toList(), await map.toList());
     });
 
     test('return flatMap f', () async {
-      final monadInstance = _returnMonad(helloWorld);
+      final monadInstance = _returnMonad(helloWorld).asBroadcastStream();
       final bound = monadInstance.flatMap(_f);
 
       expect(await bound.toList(), await _f(helloWorld).toList());
     });
 
     test('m flatMap return', () async {
-      final bound = _returnMonad(helloWorld).flatMap(_returnMonad);
+      final bound =
+          _returnMonad(helloWorld).asBroadcastStream().flatMap(_returnMonad);
 
       expect(await bound.toList(), await _returnMonad(helloWorld).toList());
     });
 
     test('composition', () async {
-      final bound = _returnMonad(helloWorld).flatMap(_f).flatMap(_g);
-      final composedBound =
-          _returnMonad(helloWorld).flatMap((s) => _f(s).flatMap(_g));
+      final bound =
+          _returnMonad(helloWorld).asBroadcastStream().flatMap(_f).flatMap(_g);
+      final composedBound = _returnMonad(helloWorld)
+          .asBroadcastStream()
+          .flatMap((s) => _f(s).asBroadcastStream().flatMap(_g));
 
       // composedBound requires to go through two cycles in the event loop.
       scheduleMicrotask(() async {
@@ -360,11 +367,11 @@ void main() {
   });
 }
 
-StreamMonad<int> _f(s) => new StreamMonad<int>(
-    new Stream.fromIterable([stringToLength(s)]).asBroadcastStream());
+StreamMonad<int> _f(s) =>
+    new StreamMonad<int>(new Stream.fromIterable([stringToLength(s)]));
 
-StreamMonad<String> _g(s) => new StreamMonad<String>(
-    new Stream.fromIterable([decorate(s)]).asBroadcastStream());
+StreamMonad<String> _g(s) =>
+    new StreamMonad<String>(new Stream.fromIterable([decorate(s)]));
 
 StreamMonad<T> _returnMonad<T>(T value) =>
-    new StreamMonad<T>(new Stream.fromIterable([value]).asBroadcastStream());
+    new StreamMonad<T>(new Stream.fromIterable([value]));

@@ -7,7 +7,7 @@ abstract class EmptyIterableMixin<T, M extends IterableMonad<T>>
     implements Iterable<T>, ValueWrapper<T, M> {
   @override
   T get first {
-    throw new StateError("No element");
+    throw new StateError('No element');
   }
 
   @override
@@ -18,12 +18,12 @@ abstract class EmptyIterableMixin<T, M extends IterableMonad<T>>
 
   @override
   T get last {
-    throw new StateError("No element");
+    throw new StateError('No element');
   }
 
   @override
   T get single {
-    throw new StateError("No element");
+    throw new StateError('No element');
   }
 
   @override
@@ -34,7 +34,7 @@ abstract class EmptyIterableMixin<T, M extends IterableMonad<T>>
 
   @override
   T elementAt(int index) {
-    throw new RangeError.index(index, this, "index", null, 0);
+    throw new RangeError.index(index, this, 'index', null, 0);
   }
 
   @override
@@ -76,12 +76,12 @@ abstract class EmptyIterableMixin<T, M extends IterableMonad<T>>
 
   @override
   T reduce(T combine(T value, T element)) {
-    throw new StateError("Too few elements");
+    throw new StateError('Too few elements');
   }
 
   @override
   T singleWhere(bool test(T element)) {
-    throw new StateError("No element");
+    throw new StateError('No element');
   }
 
   @override
@@ -96,7 +96,7 @@ abstract class EmptyIterableMixin<T, M extends IterableMonad<T>>
       return this as M;
     }
 
-    throw new StateError("Too few elements");
+    throw new StateError('Too few elements');
   }
 
   @override

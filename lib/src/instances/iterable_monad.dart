@@ -88,7 +88,7 @@ class IterableMonad<T> extends Monad<T> implements Iterable<T>, Monoid<T> {
   }
 
   @override
-  String join([String separator = ""]) => _data.join(separator);
+  String join([String separator = '']) => _data.join(separator);
 
   @override
   T lastWhere(bool test(T element), {T orElse()}) => _data.lastWhere(test);

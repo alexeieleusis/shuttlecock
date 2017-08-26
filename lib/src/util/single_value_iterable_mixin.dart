@@ -41,7 +41,7 @@ abstract class SingleValueIterableMixin<T, M extends IterableMonad<T>>
   @override
   T elementAt(int index) {
     if (index != 0) {
-      throw new RangeError.index(index, this, "index", null, 1);
+      throw new RangeError.index(index, this, 'index', null, 1);
     }
 
     return value;
@@ -62,7 +62,7 @@ abstract class SingleValueIterableMixin<T, M extends IterableMonad<T>>
       return orElse();
     }
 
-    throw new StateError("No element");
+    throw new StateError('No element');
   }
 
   @override
@@ -78,7 +78,7 @@ abstract class SingleValueIterableMixin<T, M extends IterableMonad<T>>
   T getOrElse(T orElse) => value;
 
   @override
-  String join([String separator = ""]) => value.toString();
+  String join([String separator = '']) => value.toString();
 
   @override
   T lastWhere(bool test(T element), {T orElse()}) {
@@ -88,7 +88,7 @@ abstract class SingleValueIterableMixin<T, M extends IterableMonad<T>>
       return orElse();
     }
 
-    throw new StateError("No element");
+    throw new StateError('No element');
   }
 
   @override
@@ -103,7 +103,7 @@ abstract class SingleValueIterableMixin<T, M extends IterableMonad<T>>
       return value;
     }
 
-    throw new StateError("No element");
+    throw new StateError('No element');
   }
 
   @override
