@@ -568,30 +568,38 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
 class _ReplayStream<T> extends StreamMonad<T> {
   final _replayElements = <T>[];
+  final StreamController<T> _controller;
+
+  bool _isListening = false;
 
   _ReplayStream(Stream stream, {int buffer: 0, Duration window})
-      : super(stream) {
-    StreamSubscription<T> subscription;
-    subscription = stream.listen((event) {
-      _replayElements.add(event);
-      while (buffer > 0 && _replayElements.length > buffer) {
-        _replayElements.removeAt(0);
-      }
-      if (window != null) {
-        new Timer(window, () {
-          _replayElements.remove(event);
-        });
-      }
-    }, onDone: () {
-      _replayElements.clear();
-      subscription.cancel();
-    });
+      : _controller = new StreamController<T>.broadcast(),
+        super(stream) {
+    _controller.onListen = () {
+      if (!_isListening) {}
+      _isListening = true;
+      stream.listen((event) {
+        _controller.add(event);
+        _replayElements.add(event);
+        while (buffer > 0 && _replayElements.length > buffer) {
+          _replayElements.removeAt(0);
+        }
+        if (window != null) {
+          new Timer(window, () {
+            _replayElements.remove(event);
+          });
+        }
+      }, onDone: () {
+        _replayElements.clear();
+        _controller.close();
+      });
+    };
   }
 
   @override
   StreamSubscription<T> listen(void onData(T event),
       {Function onError, void onDone(), bool cancelOnError}) {
     _replayElements.forEach(onData);
-    return super.listen(onData, onError: onError, onDone: onDone);
+    return _controller.stream.listen(onData, onError: onError, onDone: onDone);
   }
 }

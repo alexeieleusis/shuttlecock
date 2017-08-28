@@ -250,7 +250,10 @@ void main() {
         final controller = new StreamController<int>.broadcast();
         final original = new StreamMonad(controller.stream);
 
-        final replay = original.replay(buffer: 2);
+        final replay = original.replay(buffer: 2)
+          // replay is always broadcasting but will not start listening the
+          // underlying stream until a first subscription happens.
+          ..listen((_) {});
         await controller.addStream(new Stream.fromIterable([0, 1, 2, 3]));
         final subscription = replay.listen(collected.add);
         // ignore: unawaited_futures
@@ -267,7 +270,10 @@ void main() {
         final controller = new StreamController<int>.broadcast();
         final original = new StreamMonad(controller.stream);
 
-        final replay = original.replay(window: const Duration(milliseconds: 3));
+        final replay = original.replay(window: const Duration(milliseconds: 3))
+          // replay is always broadcasting but will not start listening the
+          // underlying stream until a first subscription happens.
+          ..listen((_) {});
         // ignore: unawaited_futures
         controller.addStream(
             new Stream.periodic(const Duration(milliseconds: 2), (i) => i)
