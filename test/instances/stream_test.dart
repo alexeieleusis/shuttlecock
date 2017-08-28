@@ -152,6 +152,21 @@ void main() {
       });
     });
 
+    group('Timer', () {
+      test('Wait and start', () async {
+        var flag = 0;
+        final timer = new StreamMonad.timer(
+                generator: identity, delay: const Duration(microseconds: 200))
+            .take(1);
+        await new Future.delayed(const Duration(microseconds: 300));
+        expect(flag, 0);
+        await timer.toList().then((_) {
+          flag = 1;
+        });
+        expect(flag, 1);
+      });
+    });
+
     group('merge', () {
       test('from docs', () async {
         final firstSource = new Stream.periodic(
