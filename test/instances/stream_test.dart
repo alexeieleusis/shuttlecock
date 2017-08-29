@@ -267,7 +267,7 @@ void main() {
 
       test('window', () async {
         final collected = [];
-        final controller = new StreamController<int>.broadcast();
+        final controller = new StreamController<int>();
         final original = new StreamMonad(controller.stream);
 
         final replay = original.replay(window: const Duration(milliseconds: 3))
