@@ -298,7 +298,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
       scheduleMicrotask(controller.close);
     }
 
-    void _onData(T t) {
+    void onData(T t) {
       // We don't want to do more work if already closed.
       if (controller.isClosed) {
         return;
@@ -306,7 +306,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
       // Count this event.
       count++;
 
-      void _onDone() {
+      void onDone() {
         count--;
         if (done && count == 0) {
           scheduleMicrotask(controller.close);
@@ -315,15 +315,15 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
       // We start listening as we get the data.
       f(t).listen(controller.add,
-          onError: controller.addError, onDone: _onDone, cancelOnError: true);
+          onError: controller.addError, onDone: onDone, cancelOnError: true);
     }
 
-    void _sourceDone() {
+    void sourceDone() {
       done = true;
     }
 
     controller.onListen = () {
-      _stream.listen(_onData, onError: _onError, onDone: _sourceDone);
+      _stream.listen(onData, onError: _onError, onDone: sourceDone);
     };
     return new StreamMonad(controller.stream);
   }
@@ -352,7 +352,8 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   @override
   StreamSubscription<T> listen(void onData(T event),
           {Function onError, void onDone(), bool cancelOnError = true}) =>
-      _stream.listen(onData, onError: onError, onDone: onDone);
+      _stream.listen(onData,
+          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
 
   /// Creates a new stream that converts each element of this stream to a new
   /// value using the [f] function.
@@ -596,10 +597,14 @@ class _ReplayStream<T> extends StreamMonad<T> {
     };
   }
 
+  /// N.B. This implementation differs from the stream implementation in the SDK
+  /// making [cancelOnError] `true` by default. This although a breaking change
+  /// conforms to the [ReactiveX Observable Contract](http://reactivex.io/documentation/contract.html).
   @override
   StreamSubscription<T> listen(void onData(T event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+      {Function onError, void onDone(), bool cancelOnError: true}) {
     _replayElements.forEach(onData);
-    return _controller.stream.listen(onData, onError: onError, onDone: onDone);
+    return _controller.stream.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 }
