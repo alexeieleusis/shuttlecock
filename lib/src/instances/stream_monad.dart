@@ -577,7 +577,10 @@ class _ReplayStream<T> extends StreamMonad<T> {
       : _controller = new StreamController<T>.broadcast(),
         super(stream) {
     _controller.onListen = () {
-      if (!_isListening) {}
+      if (_isListening) {
+        return;
+      }
+
       _isListening = true;
       stream.listen((event) {
         _controller.add(event);
