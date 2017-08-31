@@ -185,10 +185,10 @@ void main() {
     group('debounce', () {
       test('something', () async {
         final periodic = new Stream.periodic(
-            const Duration(milliseconds: 3), (index) => index).take(10);
+            const Duration(milliseconds: 6), (index) => index).take(10);
 
         final stream =
-            new StreamMonad(periodic).debounce(const Duration(milliseconds: 5));
+            new StreamMonad(periodic).debounce(const Duration(milliseconds: 10));
         final actual = await stream.toList();
 
         // 3 and 8 might not be due to the async nature of streams.
@@ -270,15 +270,15 @@ void main() {
         final controller = new StreamController<int>();
         final original = new StreamMonad(controller.stream);
 
-        final replay = original.replay(window: const Duration(milliseconds: 9))
+        final replay = original.replay(window: const Duration(milliseconds: 18))
           // replay is always broadcasting but will not start listening the
           // underlying stream until a first subscription happens.
           ..listen((_) {});
         // ignore: unawaited_futures
         controller.addStream(
-            new Stream.periodic(const Duration(milliseconds: 4), (i) => i)
+            new Stream.periodic(const Duration(milliseconds: 8), (i) => i)
                 .take(4));
-        await new Future.delayed(const Duration(milliseconds: 20));
+        await new Future.delayed(const Duration(milliseconds: 40));
         replay.listen(collected.add);
         await controller.close();
 
