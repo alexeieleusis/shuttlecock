@@ -1,3 +1,4 @@
+import 'package:shuttlecock/shuttlecock.dart';
 import 'package:shuttlecock/src/category_theory/functions.dart';
 import 'package:shuttlecock/src/instances/iterable_monad.dart';
 import 'package:shuttlecock/src/util/value_wrapper.dart';
@@ -107,6 +108,10 @@ abstract class EmptyIterableMixin<T, M extends IterableMonad<T>>
 
   @override
   Set<T> toSet() => new Set.identity();
+
+  /// Unfolds every element in the iterable with [IterableMonad.unfoldSeed] and
+  /// concatenates the result.
+  IterableMonad<T> unfold(Function1<T, Option<T>> f) => new IterableMonad();
 
   @override
   M where(bool test(T element)) => this as M;
