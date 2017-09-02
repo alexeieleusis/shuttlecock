@@ -131,7 +131,7 @@ void main() {
     test('seed', () {
       Option<int> f(int x) => x < 5 ? new Option(x + 1) : new None();
 
-      expect(new IterableMonad.unfoldSeed(0, f), [0, 1, 2, 3, 4, 5]);
+      expect(new IterableMonad.grow(0, f), [0, 1, 2, 3, 4, 5]);
     });
 
     test('iterable', () {

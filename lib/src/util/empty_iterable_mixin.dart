@@ -109,7 +109,7 @@ abstract class EmptyIterableMixin<T, M extends IterableMonad<T>>
   @override
   Set<T> toSet() => new Set.identity();
 
-  /// Unfolds every element in the iterable with [IterableMonad.unfoldSeed] and
+  /// Unfolds every element in the iterable with [IterableMonad.grow] and
   /// concatenates the result.
   IterableMonad<T> unfold(Function1<T, Option<T>> f) => new IterableMonad();
 

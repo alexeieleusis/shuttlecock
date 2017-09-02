@@ -129,10 +129,10 @@ abstract class SingleValueIterableMixin<T, M extends IterableMonad<T>>
   @override
   Set<T> toSet() => new Set.from([value]);
 
-  /// Unfolds every element in the iterable with [IterableMonad.unfoldSeed] and
+  /// Unfolds every element in the iterable with [IterableMonad.grow] and
   /// concatenates the result.
   IterableMonad<T> unfold(Function1<T, Option<T>> f) =>
-      new IterableMonad.unfoldSeed(value, f);
+      new IterableMonad.grow(value, f);
 
   @override
   M where(bool test(T element)) => test(value) ? this : toEmpty();

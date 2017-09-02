@@ -17,7 +17,7 @@ class IterableMonad<T> extends Monad<T> implements Iterable<T>, Monoid<T> {
 
   /// Creates an iterable by iteratively applying [f] to the provided [seed]
   /// until [None] is returned.
-  factory IterableMonad.unfoldSeed(T seed, Function1<T, Option<T>> f) {
+  factory IterableMonad.grow(T seed, Function1<T, Option<T>> f) {
     final data = [seed];
     var option = f(seed);
     while (option.isNotEmpty) {
@@ -150,10 +150,10 @@ class IterableMonad<T> extends Monad<T> implements Iterable<T>, Monoid<T> {
   @override
   Set<T> toSet() => _data.toSet();
 
-  /// Unfolds every element in the iterable with [IterableMonad.unfoldSeed] and
+  /// Unfolds every element in the iterable with [IterableMonad.grow] and
   /// concatenates the result.
   IterableMonad<T> unfold(Function1<T, Option<T>> f) =>
-      flatMap((e) => new IterableMonad.unfoldSeed(e, f));
+      flatMap((e) => new IterableMonad.grow(e, f));
 
   @override
   IterableMonad<T> where(bool test(T element)) =>
