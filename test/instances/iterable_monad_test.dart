@@ -126,6 +126,21 @@ void main() {
       expect(flatten, [1, 1, 2, 4, 3, 9]);
     });
   });
+
+  group('unfold', () {
+    test('seed', () {
+      Option<int> f(int x) => x < 5 ? new Option(x + 1) : new None();
+
+      expect(new IterableMonad.grow(0, f), [0, 1, 2, 3, 4, 5]);
+    });
+
+    test('iterable', () {
+      Option<int> f(int x) => x < 30 ? new Option(2 * x) : new None();
+
+      expect(new IterableMonad.fromIterable([1, 2, 3]).unfold(f),
+          [1, 2, 4, 8, 16, 32, 2, 4, 8, 16, 32, 3, 6, 12, 24, 48]);
+    });
+  });
 }
 
 IterableMonad<int> _f(s) => new IterableMonad.fromIterable([stringToLength(s)]);

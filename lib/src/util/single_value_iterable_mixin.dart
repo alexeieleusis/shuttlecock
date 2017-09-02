@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:shuttlecock/src/category_theory/functions.dart';
 import 'package:shuttlecock/src/instances/iterable_monad.dart';
+import 'package:shuttlecock/src/instances/option.dart';
 import 'package:shuttlecock/src/util/value_wrapper.dart';
 
 /// Provides implementation for the classes using it as mixin.
@@ -127,6 +128,11 @@ abstract class SingleValueIterableMixin<T, M extends IterableMonad<T>>
 
   @override
   Set<T> toSet() => new Set.from([value]);
+
+  /// Unfolds every element in the iterable with [IterableMonad.grow] and
+  /// concatenates the result.
+  IterableMonad<T> unfold(Function1<T, Option<T>> f) =>
+      new IterableMonad.grow(value, f);
 
   @override
   M where(bool test(T element)) => test(value) ? this : toEmpty();
