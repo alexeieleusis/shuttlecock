@@ -1,6 +1,6 @@
 name: shuttlecock
 description: An algebraic types library inspired by the course Category theory for programmers by Bartosz Milewski. https://www.youtube.com/playlist?list=PLbgaMIhjbmEnaH_LTkxLI7FMa2HsnawM_
-version: 0.2.1
+version: 0.3.2
 author: Alexei Eleusis Díaz Vera <alexei.eleusis@gmail.com>
 homepage: https://github.com/alexeieleusis/shuttlecock
 
