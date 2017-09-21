@@ -75,6 +75,19 @@ abstract class Option<T> extends Monad<T>
   @override
   Option<S> map<S>(Function1<T, S> f);
 
+  /// Applies the [projection] until the result is [None], in such case returns
+  /// the previous value or [None] if this instance is already [None]
+  Option<T> unfold(Function1<T, Option<T>> projection) {
+    var previous = this;
+    var next = flatMap(projection);
+    // Loop instead of a tail recursion
+    while(next.isNotEmpty) {
+      previous = next;
+      next = next.flatMap(projection);
+    }
+    return previous;
+  }
+
   /// A convenience static method to create Nones.
   static Option<T> empty<T>() => new None<T>();
 
