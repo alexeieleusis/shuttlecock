@@ -187,8 +187,8 @@ void main() {
         final periodic = new Stream.periodic(
             const Duration(milliseconds: 6), (index) => index).take(10);
 
-        final stream =
-            new StreamMonad(periodic).debounce(const Duration(milliseconds: 10));
+        final stream = new StreamMonad(periodic)
+            .debounce(const Duration(milliseconds: 10));
         final actual = await stream.toList();
 
         // 3 and 8 might not be due to the async nature of streams.
@@ -287,6 +287,12 @@ void main() {
     });
 
     group('unfold', () {
+      test('constructor unfoldOf', () async {
+        var streamMonad = new StreamMonad.unfoldOf(1, (one) => new Option(one));
+        final ones = await streamMonad.take(1).toList();
+        expect(ones, [1]);
+      });
+
       test('happy path', () async {
         final original = new StreamMonad(new Stream.fromIterable([1]));
         final unfolded = await original

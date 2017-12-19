@@ -50,6 +50,35 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
     return new StreamMonad(controller.stream);
   }
 
+  factory StreamMonad.unfoldOf(T seed, Function1<T, Option<T>> projection) {
+    final returnController = new StreamController<T>();
+    final internalController = new StreamController<T>.broadcast();
+    internalController.stream.listen(returnController.add,
+        onError: returnController.addError,
+        cancelOnError: true,
+        onDone: returnController.close);
+
+    void step(Option option) {
+      if (option.isNotEmpty) {
+        final value = option.first;
+        internalController.add(value);
+        internalController.stream.first.then((_) {
+          step(projection(value));
+        });
+      } else {
+        internalController.close();
+      }
+    }
+
+    returnController.onListen = () {
+      scheduleMicrotask(() {
+        step(new Option(seed));
+      });
+    };
+
+    return new StreamMonad(returnController.stream);
+  }
+
   @override
   FutureMonad<T> get first => new FutureMonad(_stream.first);
 
