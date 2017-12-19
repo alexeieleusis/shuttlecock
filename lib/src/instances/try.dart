@@ -139,9 +139,9 @@ abstract class Try<T> extends Monad<T>
   /// the contextual information about the failure.
   factory Try(T value()) {
     try {
-      return new Success._(value());
+      return new Success<T>._(value());
     } on Exception catch (e, s) {
-      return new Failure._(e, s);
+      return new Failure<T>._(e, s);
     }
   }
 

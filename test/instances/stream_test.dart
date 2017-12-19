@@ -288,7 +288,7 @@ void main() {
 
     group('unfold', () {
       test('constructor unfoldOf', () async {
-        var streamMonad = new StreamMonad.unfoldOf(1, (one) => new Option(one));
+        final streamMonad = new StreamMonad.unfoldOf(1, (one) => new Option(one));
         final ones = await streamMonad.take(1).toList();
         expect(ones, [1]);
       });

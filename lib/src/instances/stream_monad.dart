@@ -50,6 +50,10 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
     return new StreamMonad(controller.stream);
   }
 
+  /// Returns a stream that emits items based on iteratively applying the
+  /// [projection] to the [seed] until the output is `None`, that is, the events
+  /// of the stream will be: `seed, projection(seed), projection^2(seed), ...,
+  /// projection^n(seed)` where `projection^(n + 1) = None`.
   factory StreamMonad.unfoldOf(T seed, Function1<T, Option<T>> projection) {
     final returnController = new StreamController<T>();
     final internalController = new StreamController<T>.broadcast();
