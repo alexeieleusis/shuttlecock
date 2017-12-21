@@ -36,6 +36,11 @@ class Failure<T> extends Try<T> with EmptyIterableMixin<T, Try<T>> {
   Try<S> app<S>(Try<Function1<T, S>> app) => new Failure._(error, stackTrace);
 
   @override
+  Iterable<T> cast<T>() {
+    throw new UnimplementedError('cast');
+  }
+
+  @override
   @Deprecated('Use flatMap instead')
   Try<S> expand<S>(Iterable<S> f(T element)) =>
       new Failure._(error, stackTrace);
@@ -43,6 +48,11 @@ class Failure<T> extends Try<T> with EmptyIterableMixin<T, Try<T>> {
   @override
   Try<S> flatMap<S>(Function1<T, Monad<S>> f) =>
       new Failure._(error, stackTrace);
+
+  @override
+  Iterable<T> followedBy(Iterable<T> other) {
+    throw new UnimplementedError('followedBy');
+  }
 
   @override
   Try<S> map<S>(Function1<T, S> f) => new Failure<S>._(error, stackTrace);
@@ -56,6 +66,11 @@ class Failure<T> extends Try<T> with EmptyIterableMixin<T, Try<T>> {
       onFailure(error);
 
   @override
+  Iterable<T> retype<T>() {
+    throw new UnimplementedError('retype');
+  }
+
+  @override
   Either<Exception, T> toEither() => new Left(error);
 
   @override
@@ -67,6 +82,11 @@ class Failure<T> extends Try<T> with EmptyIterableMixin<T, Try<T>> {
   @override
   Try<T> transform(Function1<T, Try<T>> f, Function1<Exception, Try<T>> g) =>
       recoverWith(g);
+
+  @override
+  Iterable<T> whereType<T>() {
+    throw new UnimplementedError('whereType');
+  }
 }
 
 /// A computation successfully completed.
@@ -91,12 +111,22 @@ class Success<T> extends Try<T> with SingleValueIterableMixin<T, Try<T>> {
   }
 
   @override
+  Iterable<T> cast<T>() {
+    throw new UnimplementedError('cast');
+  }
+
+  @override
   Try<S> flatMap<S>(Function1<T, Try<S>> f) {
     try {
       return f(value);
     } on Exception catch (e, s) {
       return new Failure._(e, s);
     }
+  }
+
+  @override
+  Iterable<T> followedBy(Iterable<T> other) {
+    throw new UnimplementedError('followedBy');
   }
 
   @override
@@ -107,6 +137,11 @@ class Success<T> extends Try<T> with SingleValueIterableMixin<T, Try<T>> {
 
   @override
   Try<T> recoverWith(Function1<Exception, Try<T>> onFailure) => this;
+
+  @override
+  Iterable<T> retype<T>() {
+    throw new UnimplementedError('retype');
+  }
 
   @override
   Either<Exception, T> toEither() => new Right(value);
@@ -129,6 +164,11 @@ class Success<T> extends Try<T> with SingleValueIterableMixin<T, Try<T>> {
   @override
   Try<T> transform(Function1<T, Try<T>> f, Function1<Exception, Try<T>> g) =>
       flatMap(f);
+
+  @override
+  Iterable<T> whereType<T>() {
+    throw new UnimplementedError('whereType');
+  }
 }
 
 /// A computation that might throw an error while executed.

@@ -99,9 +99,13 @@ abstract class SingleValueIterableMixin<T, M extends IterableMonad<T>>
   T reduce(T combine(T value, T element)) => value;
 
   @override
-  T singleWhere(bool test(T element)) {
+  T singleWhere(bool test(T element), {T orElse()}) {
     if (test(value)) {
       return value;
+    }
+
+    if (orElse != null) {
+      return orElse();
     }
 
     throw new StateError('No element');
