@@ -67,6 +67,13 @@ class IterableMonad<T> extends Monad<T> implements Iterable<T>, Monoid<T> {
     return new IterableMonad.fromIterable(newData);
   }
 
+  /// TODO: Dart 2.0 requires this method to be implemented. See https://github.com/dart-lang/sdk/issues/31664.
+  @override
+  // ignore: override_on_non_overriding_method
+  Iterable<S> cast<S>() {
+    throw new UnimplementedError('cast');
+  }
+
   @override
   bool contains(Object element) => _data.contains(element);
 
@@ -93,6 +100,13 @@ class IterableMonad<T> extends Monad<T> implements Iterable<T>, Monoid<T> {
   @override
   S fold<S>(S initialValue, S combine(S previousValue, T element)) =>
       _data.fold(initialValue, combine);
+
+  /// TODO: Dart 2.0 requires this method to be implemented. See https://github.com/dart-lang/sdk/issues/31664.
+  @override
+  // ignore: override_on_non_overriding_method
+  Iterable<T> followedBy(Iterable<T> other) {
+    throw new UnimplementedError('followedBy');
+  }
 
   @override
   void forEach(void f(T element)) {
@@ -123,8 +137,16 @@ class IterableMonad<T> extends Monad<T> implements Iterable<T>, Monoid<T> {
   @override
   T reduce(T combine(T value, T element)) => _data.reduce(combine);
 
+  /// TODO: Dart 2.0 requires this method to be implemented. See https://github.com/dart-lang/sdk/issues/31664.
   @override
-  T singleWhere(bool test(T element)) => _data.singleWhere(test);
+  // ignore: override_on_non_overriding_method
+  Iterable<S> retype<S>() {
+    throw new UnimplementedError('retype');
+  }
+
+  @override
+  T singleWhere(bool test(T element), {T orElse()}) =>
+      any(test) || orElse == null ? _data.singleWhere(test) : orElse();
 
   @override
   IterableMonad<T> skip(int count) =>
@@ -158,4 +180,11 @@ class IterableMonad<T> extends Monad<T> implements Iterable<T>, Monoid<T> {
   @override
   IterableMonad<T> where(bool test(T element)) =>
       new IterableMonad.fromIterable(_data.where(test));
+
+  /// TODO: Dart 2.0 requires this method to be implemented. See https://github.com/dart-lang/sdk/issues/31664.
+  @override
+  // ignore: override_on_non_overriding_method
+  Iterable<S> whereType<S>() {
+    throw new UnimplementedError('whereType');
+  }
 }

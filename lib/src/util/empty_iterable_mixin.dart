@@ -81,7 +81,11 @@ abstract class EmptyIterableMixin<T, M extends IterableMonad<T>>
   }
 
   @override
-  T singleWhere(bool test(T element)) {
+  T singleWhere(bool test(T element), {T orElse()}) {
+    if (orElse != null) {
+      return orElse();
+    }
+
     throw new StateError('No element');
   }
 

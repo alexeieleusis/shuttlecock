@@ -18,6 +18,11 @@ class None<T> extends Option<T> with EmptyIterableMixin<T, Option<T>> {
   Option<S> app<S>(Option<Function1<T, S>> app) => new None();
 
   @override
+  Iterable<T> cast<T>() {
+    throw new UnimplementedError('cast');
+  }
+
+  @override
   @Deprecated('Use flatMap instead')
   Option<S> expand<S>(Iterable<S> f(T element)) => new None();
 
@@ -25,10 +30,25 @@ class None<T> extends Option<T> with EmptyIterableMixin<T, Option<T>> {
   Option<S> flatMap<S>(Function1<T, Option<S>> f) => new None();
 
   @override
+  Iterable<T> followedBy(Iterable<T> other) {
+    throw new UnimplementedError('followedBy');
+  }
+
+  @override
   Option<S> map<S>(Function1<T, S> f) => new None<S>();
 
   @override
+  Iterable<T> retype<T>() {
+    throw new UnimplementedError('retype');
+  }
+
+  @override
   String toString() => 'None';
+
+  @override
+  Iterable<T> whereType<T>() {
+    throw new UnimplementedError('whereType');
+  }
 }
 
 /// Represents an optional value. It satisfies the type equation FX = 1 + X,
@@ -103,14 +123,34 @@ class Some<T> extends Option<T> with SingleValueIterableMixin<T, Option<T>> {
   }
 
   @override
+  Iterable<T> cast<T>() {
+    throw new UnimplementedError('cast');
+  }
+
+  @override
   Option<S> flatMap<S>(Function1<T, Option<S>> f) => f(value);
 
   @override
+  Iterable<T> followedBy(Iterable<T> other) {
+    throw new UnimplementedError('followedBy');
+  }
+
+  @override
   Option<S> map<S>(Function1<T, S> f) => new Some<S>(f(value));
+
+  @override
+  Iterable<T> retype<T>() {
+    throw new UnimplementedError('retype');
+  }
 
   @override
   Option<T> toEmpty() => new None();
 
   @override
   String toString() => 'Some $value';
+
+  @override
+  Iterable<T> whereType<T>() {
+    throw new UnimplementedError('whereType');
+  }
 }
