@@ -55,32 +55,41 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   /// of the stream will be: `seed, projection(seed), projection^2(seed), ...,
   /// projection^n(seed)` where `projection^(n + 1) = None`.
   factory StreamMonad.unfoldOf(T seed, Function1<T, Option<T>> projection) {
-    final returnController = new StreamController<T>();
-    final internalController = new StreamController<T>.broadcast();
-    internalController.stream.listen(returnController.add,
-        onError: returnController.addError,
-        cancelOnError: true,
-        onDone: returnController.close);
+    final controller = new StreamController<Option<T>>();
+    var toClose = false;
 
-    void step(Option option) {
-      if (option.isNotEmpty) {
-        final value = option.first;
-        internalController.add(value);
-        internalController.stream.first.then((_) {
-          step(projection(value));
-        });
-      } else {
-        internalController.close();
+    StreamMonad<Option <T>> toStream(T t) => new StreamMonad.of(new Some(t));
+
+    void step(T current) {
+      void applyStep(T t) {
+        if(toClose)
+          controller.close();
+        else
+          step(t);
+      }
+      try {
+        final oCurrent = projection(current);
+        if(oCurrent.isEmpty) {
+          controller.close();
+        } else {
+          controller
+              .addStream(toStream(oCurrent.first))
+              .whenComplete((){ applyStep(oCurrent.first); });
+        }
+      } catch (e, s) {
+        controller
+          ..addError(e, s)
+          ..close();
       }
     }
 
-    returnController.onListen = () {
-      scheduleMicrotask(() {
-        step(new Option(seed));
-      });
-    };
+    controller
+      ..onListen = () {
+        controller.addStream(toStream(seed)).whenComplete((){ step(seed); });
+      }
+      ..onCancel = () { toClose = true; };
 
-    return new StreamMonad(returnController.stream);
+    return new StreamMonad(controller.stream).map((o) => o.first);
   }
 
   @override
@@ -508,35 +517,8 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   /// merged on the output stream. Those output values resulting from the
   /// projection are also given to the project function to produce new output
   /// values. This is how expand behaves recursively.
-  StreamMonad<T> unfold(Function1<T, Option<T>> projection) {
-    final controller = _stream.isBroadcast
-        ? new StreamController<T>.broadcast()
-        : new StreamController<T>();
-    StreamSubscription<T> subscription;
-
-    controller.onListen = () {
-      subscription = listen((event) {
-        controller.add(event);
-        var option = projection(event);
-        while (option.isNotEmpty) {
-          final value = option.first;
-          controller.add(value);
-          option = projection(value);
-        }
-        controller.close();
-        subscription.cancel();
-      }, onError: (exception, stackTrace) {
-        controller
-          ..addError(exception, stackTrace)
-          ..close();
-      }, onDone: () {
-        controller.close();
-        subscription.cancel();
-      });
-    };
-
-    return new StreamMonad(controller.stream);
-  }
+  StreamMonad<T> unfold(Function1<T, Option<T>> projection) =>
+      flatMap((e) => new StreamMonad.unfoldOf(e, projection));
 
   @override
   StreamMonad<T> where(bool test(T event)) =>
