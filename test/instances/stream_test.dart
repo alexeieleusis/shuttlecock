@@ -287,10 +287,28 @@ void main() {
     });
 
     group('unfold', () {
-      test('constructor unfoldOf', () async {
+      test('constructor unfoldOf taking 0', () async {
+        final streamMonad = new StreamMonad.unfoldOf(1, (one) => new Option(one));
+        final ones = await streamMonad.take(0).toList();
+        expect(ones, []);
+      });
+
+      test('constructor unfoldOf taking 1', () async {
         final streamMonad = new StreamMonad.unfoldOf(1, (one) => new Option(one));
         final ones = await streamMonad.take(1).toList();
         expect(ones, [1]);
+      });
+
+      test('constructor unfoldOf taking 5', () async {
+        final streamMonad = new StreamMonad.unfoldOf(1, (one) => new Option(one));
+        final ones = await streamMonad.take(5).toList();
+        expect(ones, [1, 1, 1, 1, 1]);
+      });
+
+      test('unfoldOf with map', () async {
+        final streamMonad = new StreamMonad.unfoldOf(1, (one) => new Option(one));
+        final ones = await streamMonad.map((n) => n*2).take(1).toList();
+        expect(ones, [2]);
       });
 
       test('happy path', () async {
