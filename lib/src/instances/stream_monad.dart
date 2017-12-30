@@ -56,26 +56,31 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   /// projection^n(seed)` where `projection^(n + 1) = None`.
   factory StreamMonad.unfoldOf(T seed, Function1<T, Option<T>> projection) {
     final controller = new StreamController<Option<T>>();
-    var toClose = false;
+    var shouldClose = false;
 
-    StreamMonad<Option <T>> toStream(T t) => new StreamMonad.of(new Some(t));
+    StreamMonad<Option<T>> toStream(T t) => new StreamMonad.of(new Some(t));
 
     void step(T current) {
       void applyStep(T t) {
-        if(toClose)
+        if (shouldClose) {
           controller.close();
-        else
+        } else {
           step(t);
+        }
       }
+
       try {
-        final oCurrent = projection(current);
-        if(oCurrent.isEmpty) {
+        final currentProjection = projection(current);
+        if (currentProjection.isEmpty) {
           controller.close();
         } else {
           controller
-              .addStream(toStream(oCurrent.first))
-              .whenComplete((){ applyStep(oCurrent.first); });
+              .addStream(toStream(currentProjection.first))
+              .whenComplete(() {
+            applyStep(currentProjection.first);
+          });
         }
+        // ignore: avoid_catches_without_on_clauses
       } catch (e, s) {
         controller
           ..addError(e, s)
@@ -85,9 +90,13 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
     controller
       ..onListen = () {
-        controller.addStream(toStream(seed)).whenComplete((){ step(seed); });
+        controller.addStream(toStream(seed)).whenComplete(() {
+          step(seed);
+        });
       }
-      ..onCancel = () { toClose = true; };
+      ..onCancel = () {
+        shouldClose = true;
+      };
 
     return new StreamMonad(controller.stream).map((o) => o.first);
   }
