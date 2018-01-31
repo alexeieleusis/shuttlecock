@@ -191,6 +191,22 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
     return new StreamMonad(controller.stream);
   }
 
+  @override
+  // TODO: Dart 2.0 requires this method to be implemented.
+  // See https://github.com/dart-lang/sdk/issues/31847 .
+  // ignore: override_on_non_overriding_method
+  Stream<T> cast<T>() {
+    throw new UnimplementedError("cast");
+  }
+
+  @override
+  // TODO: Dart 2.0 requires this method to be implemented.
+  // See https://github.com/dart-lang/sdk/issues/31847 .
+  // ignore: override_on_non_overriding_method
+  Stream<T> retype<T>() {
+    throw new UnimplementedError("retype");
+  }
+
   /// Combines this and another to create an stream whose events are
   /// calculated from the latest values of each stream.
   StreamMonad<E> combineLatest<S, E>(
@@ -331,8 +347,10 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
       new StreamMonad(_stream.expand(convert));
 
   @override
-  FutureMonad firstWhere(bool test(T element), {Object defaultValue()}) =>
-      new FutureMonad(_stream.firstWhere(test, defaultValue: defaultValue));
+  FutureMonad<T> firstWhere(bool test(T element),
+          {Object defaultValue(), T orElse()}) =>
+      new FutureMonad(
+          _stream.firstWhere(test, defaultValue: defaultValue ?? orElse));
 
   @override
   StreamMonad<S> flatMap<S>(Function1<T, StreamMonad<S>> f) {
@@ -355,10 +373,10 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
     // new events and notify source streams to close also.
     void _close() {
       sourceSubscription.cancel();
-      for(var subscription in subscriptions) {
+      for (var subscription in subscriptions) {
         subscription.cancel();
       }
-      if(!controller.isClosed) {
+      if (!controller.isClosed) {
         controller.close();
       }
     }
@@ -390,6 +408,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
         }
         controller.add(s);
       }
+
       // Count this subscription.
       count++;
       // We start listening as we get the data.
@@ -403,7 +422,8 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
     controller
       ..onListen = () {
-        sourceSubscription = _stream.listen(_onData, onError: _onError, onDone: _onDone);
+        sourceSubscription =
+            _stream.listen(_onData, onError: _onError, onDone: _onDone);
       }
       ..onCancel = _close;
     return new StreamMonad(controller.stream);
@@ -427,8 +447,10 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
       new FutureMonad(_stream.join(separator));
 
   @override
-  FutureMonad lastWhere(bool test(T element), {Object defaultValue()}) =>
-      new FutureMonad(_stream.lastWhere(test, defaultValue: defaultValue));
+  FutureMonad<T> lastWhere(bool test(T element),
+          {Object defaultValue(), T orElse()}) =>
+      new FutureMonad(
+          _stream.lastWhere(test, defaultValue: defaultValue ?? orElse));
 
   @override
   StreamSubscription<T> listen(void onData(T event),
@@ -515,8 +537,8 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   }
 
   @override
-  FutureMonad<T> singleWhere(bool test(T element)) =>
-      new FutureMonad(_stream.singleWhere(test));
+  FutureMonad<T> singleWhere(bool test(T element), {T orElse()}) =>
+      new FutureMonad(_stream.singleWhere(test) ?? orElse());
 
   @override
   StreamMonad<T> skip(int count) => new StreamMonad(_stream.skip(count));
