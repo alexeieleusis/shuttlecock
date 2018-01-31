@@ -336,83 +336,76 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
   @override
   StreamMonad<S> flatMap<S>(Function1<T, StreamMonad<S>> f) {
+    // Counter of subscriptions.
+    // If the source stream completes, there may be new streams still open and
+    // we need to wait until all of them close.
     var count = 0;
+    // Flag to indicate that the underlying source stream is completed.
+    // When the source stream completes, the new stream should also wait for
+    // all other streams to complete.
     var done = false;
-    var shouldClose = false;
     final subscriptions = <StreamSubscription<S>>[];
-    StreamSubscription<T> subs;
+    StreamSubscription<T> sourceSubscription;
 
     final controller = _stream.isBroadcast
         ? new StreamController<S>.broadcast()
         : new StreamController<S>();
 
-    void cancelSubscriptions() {
-      subscriptions.forEach((s) => s.cancel());
-      subs.cancel();
-    }
-
-    void close() {
-      controller.close();
-      cancelSubscriptions();
-    }
-
-    void onError(error, stackTrace) {
-      controller.addError(error, stackTrace);
-      shouldClose = true;
-      done = true;
-      close();
-    }
-
-    void onData(T t) {
-      // We don't want to do more work if already closed.
-      if (shouldClose) {
-        close();
-      } else {
-        // Count this event.
-        count++;
-
-        void onInnerDone() {
-          if (shouldClose) {
-            close();
-          }
-          count--;
-          if (done && count == 0) {
-            close();
-          }
-        }
-
-        void onInnerError(Object error, [StackTrace stackTrace]) {
-          controller.addError(error, stackTrace);
-          shouldClose = true;
-          close();
-        }
-
-        void onInnerData(S s) {
-          if (shouldClose || controller.isClosed) {
-            close();
-          } else {
-            controller.add(s);
-          }
-        }
-
-        // We start listening as we get the data.
-        subscriptions.add(f(t).listen(onInnerData,
-            onError: onInnerError, onDone: onInnerDone, cancelOnError: true));
+    // Close the controller and cancel all underlying subscriptions to prevent
+    // new events and notify source streams to close also.
+    void _close() {
+      sourceSubscription.cancel();
+      for(var subscription in subscriptions) {
+        subscription.cancel();
+      }
+      if(!controller.isClosed) {
+        controller.close();
       }
     }
 
-    void sourceDone() {
+    void _onError(error, stackTrace) {
+      controller.addError(error, stackTrace);
+      _close();
+    }
+
+    void _onData(T t) {
+      void onInnerDone() {
+        count--;
+        if (controller.isClosed) {
+          return;
+        }
+        if (done && count == 0) {
+          _close();
+        }
+      }
+
+      void onInnerError(Object error, [StackTrace stackTrace]) {
+        controller.addError(error, stackTrace);
+        _close();
+      }
+
+      void onInnerData(S s) {
+        if (controller.isClosed) {
+          return;
+        }
+        controller.add(s);
+      }
+      // Count this subscription.
+      count++;
+      // We start listening as we get the data.
+      subscriptions.add(f(t).listen(onInnerData,
+          onError: onInnerError, onDone: onInnerDone, cancelOnError: true));
+    }
+
+    void _onDone() {
       done = true;
     }
 
     controller
       ..onListen = () {
-        subs = _stream.listen(onData, onError: onError, onDone: sourceDone);
+        sourceSubscription = _stream.listen(_onData, onError: _onError, onDone: _onDone);
       }
-      ..onCancel = () {
-        shouldClose = true;
-        cancelSubscriptions();
-      };
+      ..onCancel = _close;
     return new StreamMonad(controller.stream);
   }
 
