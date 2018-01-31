@@ -336,46 +336,76 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
   @override
   StreamMonad<S> flatMap<S>(Function1<T, StreamMonad<S>> f) {
+    // Counter of subscriptions.
+    // If the source stream completes, there may be new streams still open and
+    // we need to wait until all of them close.
     var count = 0;
+    // Flag to indicate that the underlying source stream is completed.
+    // When the source stream completes, the new stream should also wait for
+    // all other streams to complete.
     var done = false;
+    final subscriptions = <StreamSubscription<S>>[];
+    StreamSubscription<T> sourceSubscription;
 
     final controller = _stream.isBroadcast
         ? new StreamController<S>.broadcast()
         : new StreamController<S>();
 
-    void _onError(error, stackTrace) {
-      controller.addError(error, stackTrace);
-      done = true;
-      scheduleMicrotask(controller.close);
+    // Close the controller and cancel all underlying subscriptions to prevent
+    // new events and notify source streams to close also.
+    void _close() {
+      sourceSubscription.cancel();
+      for(var subscription in subscriptions) {
+        subscription.cancel();
+      }
+      if(!controller.isClosed) {
+        controller.close();
+      }
     }
 
-    void onData(T t) {
-      // We don't want to do more work if already closed.
-      if (controller.isClosed) {
-        return;
-      }
-      // Count this event.
-      count++;
+    void _onError(error, stackTrace) {
+      controller.addError(error, stackTrace);
+      _close();
+    }
 
-      void onDone() {
+    void _onData(T t) {
+      void onInnerDone() {
         count--;
+        if (controller.isClosed) {
+          return;
+        }
         if (done && count == 0) {
-          scheduleMicrotask(controller.close);
+          _close();
         }
       }
 
+      void onInnerError(Object error, [StackTrace stackTrace]) {
+        controller.addError(error, stackTrace);
+        _close();
+      }
+
+      void onInnerData(S s) {
+        if (controller.isClosed) {
+          return;
+        }
+        controller.add(s);
+      }
+      // Count this subscription.
+      count++;
       // We start listening as we get the data.
-      f(t).listen(controller.add,
-          onError: controller.addError, onDone: onDone, cancelOnError: true);
+      subscriptions.add(f(t).listen(onInnerData,
+          onError: onInnerError, onDone: onInnerDone, cancelOnError: true));
     }
 
-    void sourceDone() {
+    void _onDone() {
       done = true;
     }
 
-    controller.onListen = () {
-      _stream.listen(onData, onError: _onError, onDone: sourceDone);
-    };
+    controller
+      ..onListen = () {
+        sourceSubscription = _stream.listen(_onData, onError: _onError, onDone: _onDone);
+      }
+      ..onCancel = _close;
     return new StreamMonad(controller.stream);
   }
 

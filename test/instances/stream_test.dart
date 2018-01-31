@@ -315,6 +315,14 @@ void main() {
         expect(ones, [2]);
       });
 
+      test('unfoldOf with flatmap', () async {
+        final streamMonad =
+            new StreamMonad.unfoldOf(1, (one) => new Option(one));
+        final ones = await streamMonad
+            .flatMap((n) => new StreamMonad.of(n * 2)).take(1).toList();
+        expect(ones, [2]);
+      });
+
       test('happy path', () async {
         final original = new StreamMonad(new Stream.fromIterable([1]));
         final unfolded = await original
