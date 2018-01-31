@@ -338,44 +338,81 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   StreamMonad<S> flatMap<S>(Function1<T, StreamMonad<S>> f) {
     var count = 0;
     var done = false;
+    var shouldClose = false;
+    final subscriptions = <StreamSubscription<S>>[];
+    StreamSubscription<T> subs;
 
     final controller = _stream.isBroadcast
         ? new StreamController<S>.broadcast()
         : new StreamController<S>();
 
-    void _onError(error, stackTrace) {
+    void cancelSubscriptions() {
+      subscriptions.forEach((s) => s.cancel());
+      subs.cancel();
+    }
+
+    void close() {
+      controller.close();
+      cancelSubscriptions();
+    }
+
+    void onError(error, stackTrace) {
       controller.addError(error, stackTrace);
+      shouldClose = true;
       done = true;
-      scheduleMicrotask(controller.close);
+      close();
     }
 
     void onData(T t) {
       // We don't want to do more work if already closed.
-      if (controller.isClosed) {
-        return;
-      }
-      // Count this event.
-      count++;
+      if (shouldClose) {
+        close();
+      } else {
+        // Count this event.
+        count++;
 
-      void onDone() {
-        count--;
-        if (done && count == 0) {
-          scheduleMicrotask(controller.close);
+        void onInnerDone() {
+          if (shouldClose) {
+            close();
+          }
+          count--;
+          if (done && count == 0) {
+            close();
+          }
         }
-      }
 
-      // We start listening as we get the data.
-      f(t).listen(controller.add,
-          onError: controller.addError, onDone: onDone, cancelOnError: true);
+        void onInnerError(Object error, [StackTrace stackTrace]) {
+          controller.addError(error, stackTrace);
+          shouldClose = true;
+          close();
+        }
+
+        void onInnerData(S s) {
+          if (shouldClose || controller.isClosed) {
+            close();
+          } else {
+            controller.add(s);
+          }
+        }
+
+        // We start listening as we get the data.
+        subscriptions.add(f(t).listen(onInnerData,
+            onError: onInnerError, onDone: onInnerDone, cancelOnError: true));
+      }
     }
 
     void sourceDone() {
       done = true;
     }
 
-    controller.onListen = () {
-      _stream.listen(onData, onError: _onError, onDone: sourceDone);
-    };
+    controller
+      ..onListen = () {
+        subs = _stream.listen(onData, onError: onError, onDone: sourceDone);
+      }
+      ..onCancel = () {
+        shouldClose = true;
+        cancelSubscriptions();
+      };
     return new StreamMonad(controller.stream);
   }
 
