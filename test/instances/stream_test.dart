@@ -316,10 +316,10 @@ void main() {
       });
 
       test('unfoldOf with flatmap', () async {
-        final streamMonad =
-            new StreamMonad.unfoldOf(1, (one) => new Option(one));
-        final ones = await streamMonad
-            .flatMap((n) => new StreamMonad.of(n * 2)).take(1).toList();
+        final ones = await new StreamMonad.unfoldOf(1, (one) => new Option(one))
+            .flatMap((n) => new StreamMonad.of(n * 2))
+            .take(1)
+            .toList();
         expect(ones, [2]);
       });
 
@@ -330,6 +330,15 @@ void main() {
             .toList();
 
         expect(unfolded, [1, 2, 4, 8]);
+      });
+    });
+
+    group('flatMap', () {
+      test('vanilla from single subscription stream that closes', () async {
+        final ones = await new StreamMonad(new Stream.fromIterable([1, 1]))
+            .flatMap((n) => new StreamMonad.of(n * 2))
+            .toList();
+        expect(ones, [2, 2]);
       });
     });
 

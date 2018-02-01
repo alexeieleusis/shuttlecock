@@ -418,6 +418,9 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
     void _onDone() {
       done = true;
+      if (count == 0) {
+        _close();
+      }
     }
 
     controller
