@@ -120,7 +120,7 @@ void main() {
   group('state stack', () {
     final pop = new State(_popH);
 
-    final expected = new Tuple2<int, List<int>>(1, [5, 8, 2]);
+    final expected = const Tuple2<int, List<int>>(1, const [5, 8, 2]);
     const stack = const [5, 8, 2, 1];
 
     test('by hand', () {
