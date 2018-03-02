@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/alexeieleusis/shuttlecock.svg?branch=master)](https://travis-ci.org/alexeieleusis/shuttlecock)
+
 <img src="icon.png" align="right" />
 
 # shuttlecock
