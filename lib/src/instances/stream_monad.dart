@@ -44,7 +44,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
     final controller = new StreamController();
     controller.onListen = () {
       new Future.delayed(delay).then((_) {
-        controller.addStream(new Stream.periodic(delay, generator));
+        controller.addStream(new Stream.periodic(period, generator));
       });
     };
     return new StreamMonad(controller.stream);
@@ -192,20 +192,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   }
 
   @override
-  // TODO: Dart 2.0 requires this method to be implemented.
-  // See https://github.com/dart-lang/sdk/issues/31847 .
-  // ignore: override_on_non_overriding_method
-  Stream<T> cast<T>() {
-    throw new UnimplementedError("cast");
-  }
-
-  @override
-  // TODO: Dart 2.0 requires this method to be implemented.
-  // See https://github.com/dart-lang/sdk/issues/31847 .
-  // ignore: override_on_non_overriding_method
-  Stream<T> retype<T>() {
-    throw new UnimplementedError("retype");
-  }
+  Stream<R> cast<R>() => new StreamMonad(_stream.cast<R>());
 
   /// Combines this and another to create an stream whose events are
   /// calculated from the latest values of each stream.
@@ -347,10 +334,10 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
       new StreamMonad(_stream.expand(convert));
 
   @override
-  FutureMonad<T> firstWhere(bool test(T element),
-          {Object defaultValue(), T orElse()}) =>
+  FutureMonad<T> firstWhere(bool Function(T element) test,
+          {dynamic Function() defaultValue, T Function() orElse}) =>
       new FutureMonad(
-          _stream.firstWhere(test, defaultValue: defaultValue ?? orElse));
+          _stream.firstWhere(test, defaultValue: defaultValue, orElse: orElse));
 
   @override
   StreamMonad<S> flatMap<S>(Function1<T, StreamMonad<S>> f) {
@@ -450,10 +437,10 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
       new FutureMonad(_stream.join(separator));
 
   @override
-  FutureMonad<T> lastWhere(bool test(T element),
-          {Object defaultValue(), T orElse()}) =>
+  FutureMonad<T> lastWhere(bool Function(T element) test,
+          {dynamic Function() defaultValue, T Function() orElse}) =>
       new FutureMonad(
-          _stream.lastWhere(test, defaultValue: defaultValue ?? orElse));
+          _stream.lastWhere(test, defaultValue: defaultValue, orElse: orElse));
 
   @override
   StreamSubscription<T> listen(void onData(T event),
@@ -530,6 +517,9 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   /// listener.
   StreamMonad<T> replay({int buffer: 0, Duration window}) =>
       new _ReplayStream(_stream, buffer: buffer, window: window);
+
+  @override
+  StreamMonad<R> retype<R>() => new StreamMonad<R>(_stream.retype<R>());
 
   /// Applies an accumulator function over the this stream, and returns each
   /// intermediate result. Similar to what fold does on Iterable but eatch
