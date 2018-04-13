@@ -1,5 +1,5 @@
 import 'package:shuttlecock/shuttlecock.dart';
-import 'package:shuttlecock/src/instances/identity_monad.dart';
+import 'package:shuttlecock/src/instances/eval.dart';
 import 'package:test/test.dart';
 
 import '../testing_functions.dart';
@@ -9,19 +9,19 @@ void main() {
     group('applicative', () {
       test('pure identity', () {
         // ignore: omit_local_variable_types
-        final IdentityMonad<Function1<String, String>> pureIdentity =
+        final Eval<Function1<String, String>> pureIdentity =
             _returnMonad(identity);
         final monadInstance = _returnMonad(helloWorld);
 
-        expect(monadInstance.app(pureIdentity), monadInstance);
+        expect(monadInstance.app(pureIdentity).value, monadInstance.value);
       });
 
       test('pure f app pure x', () {
         final pureStringToLength = _returnMonad(stringToLength);
         final monadInstance = _returnMonad(helloWorld);
 
-        expect(monadInstance.app(pureStringToLength),
-            _returnMonad(stringToLength(helloWorld)));
+        expect(monadInstance.app(pureStringToLength).value,
+            _returnMonad(stringToLength(helloWorld)).value);
       });
 
       test('interchange', () {
@@ -29,8 +29,8 @@ void main() {
         final pureEval = _returnMonad(eval(helloWorld));
         final monadInstance = _returnMonad(helloWorld);
 
-        expect(monadInstance.app(pureStringToLength),
-            pureStringToLength.app(pureEval));
+        expect(monadInstance.app(pureStringToLength).value,
+            pureStringToLength.app(pureEval).value);
       });
 
       test('composition', () {
@@ -39,20 +39,21 @@ void main() {
         final pureComposition = _returnMonad(compose(decorate, stringToLength));
         final monadInstance = _returnMonad(helloWorld);
 
-        expect(monadInstance.app(pureStringToLength).app(pureDecorate),
-            monadInstance.app(pureComposition));
+        expect(monadInstance.app(pureStringToLength).app(pureDecorate).value,
+            monadInstance.app(pureComposition).value);
         expect(
-            monadInstance.app(
-                pureStringToLength.app(_returnMonad(curry(compose, decorate)))),
-            monadInstance.app(pureStringToLength).app(pureDecorate));
+            monadInstance
+                .app(pureStringToLength
+                    .app(_returnMonad(curry(compose, decorate))))
+                .value,
+            monadInstance.app(pureStringToLength).app(pureDecorate).value);
       });
 
       test('map apply', () {
         final pureStringToLength = _returnMonad(stringToLength);
         final monadInstance = _returnMonad(helloWorld);
-
-        expect(monadInstance.app(pureStringToLength),
-            monadInstance.map(stringToLength));
+        expect(monadInstance.app(pureStringToLength).value,
+            monadInstance.map(stringToLength).value);
       });
     });
 
@@ -60,7 +61,7 @@ void main() {
       final monadInstance = _returnMonad(helloWorld);
       final bound = monadInstance.map(identity);
 
-      expect(bound, monadInstance);
+      expect(bound.value, monadInstance.value);
     });
 
     test('map composition', () {
@@ -69,7 +70,7 @@ void main() {
       final composedBound =
           monadInstance.map(compose(decorate, stringToLength));
 
-      expect(bound, composedBound);
+      expect(bound.value, composedBound.value);
     });
 
     test('map flatMap composition', () {
@@ -78,21 +79,21 @@ void main() {
           monadInstance.flatMap((s) => _returnMonad(stringToLength(s)));
       final map = monadInstance.map(stringToLength);
 
-      expect(flatMap, map);
+      expect(flatMap.value, map.value);
     });
 
     test('return flatMap f', () {
       final monadInstance = _returnMonad(helloWorld);
       final bound = monadInstance.flatMap(_f);
 
-      expect(bound, _f(helloWorld));
+      expect(bound.value, _f(helloWorld).value);
     });
 
     test('m flatMap return', () {
       final monadInstance = _returnMonad(helloWorld);
       final bound = monadInstance.flatMap(_returnMonad);
 
-      expect(bound, monadInstance);
+      expect(bound.value, monadInstance.value);
     });
 
     test('composition', () {
@@ -100,35 +101,44 @@ void main() {
       final bound = monadInstance.flatMap(_f).flatMap(_g);
       final composedBound = monadInstance.flatMap((s) => _f(s).flatMap(_g));
 
-      expect(bound, composedBound);
+      expect(bound.value, composedBound.value);
     });
   });
 
-  group('Left', () {
-    const value = 7;
-    IdentityMonad<int> monad;
+  group('Some', () {
+    Eval<int> eval;
 
     setUp(() {
-      monad = new IdentityMonad(value);
+      eval = new Now(7);
     });
 
-    test('apply', () {
-      final ap = new IdentityMonad<Function1<int, int>>((i) => i + 1);
-      expect(monad.app(ap).value, 8);
+    test('apply some', () {
+      final ap = new Now<Function1<int, int>>((i) => i + 1);
+      final apply = eval.app(ap);
+      expect(apply.value, 8);
     });
 
     test('flatMap', () {
-      expect(monad.flatMap((i) => new IdentityMonad(i + 1)).value, 8);
+      final flatMap = eval.flatMap((i) => new Now<int>(i + 1));
+      expect(flatMap.value, 8);
     });
 
     test('map', () {
-      expect(monad.map((i) => i + 1).value, 8);
+      final map = eval.map((i) => i + 1);
+      expect(map.value, 8);
+    });
+
+    test('composition with map and intermediary null', () {
+      int fNull(int i) => null; // ignore: avoid_returning_null
+      String constHello(int i) => 'Hello';
+      final o = new Now<int>(0).map(fNull).map(constHello);
+      expect(o.value, new Now('Hello').value);
     });
   });
 }
 
-IdentityMonad<int> _f(s) => new IdentityMonad(stringToLength(s));
+Eval<int> _f(s) => new Now(stringToLength(s));
 
-IdentityMonad<String> _g(s) => new IdentityMonad(decorate(s));
+Eval<String> _g(s) => new Now(decorate(s));
 
-IdentityMonad<T> _returnMonad<T>(T value) => new IdentityMonad(value);
+Eval<T> _returnMonad<T>(T value) => new Now(value);

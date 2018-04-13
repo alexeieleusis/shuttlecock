@@ -238,9 +238,9 @@ void main() {
     });
 
     test('for all B < A Some<B>(b) == Some<A>(b)', () {
-      final num b = 4;
+      const num b = 4;
       // ignore: omit_local_variable_types
-      final int c = 4;
+      const int c = 4;
       expect(new Some<num>(b), new Some<int>(c));
     });
   });

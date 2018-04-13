@@ -6,6 +6,8 @@ import 'package:shuttlecock/shuttlecock.dart';
 abstract class Either<S, T> extends Monad<T> {
   /// The wrapped value. An instance of [S] for [Left] of [T] for [Right].
   dynamic /*S | T*/ get value;
+
+  Either<T, S> swap();
 }
 
 /// Left set, usually denotes the absence of a value, e.g. en error message.
@@ -33,6 +35,9 @@ class Left<S, T> extends Either<S, T> {
 
   @override
   Left<S, U> map<U>(Function1<T, U> f) => new Left<S, U>(value);
+
+  @override
+  Either<T, S> swap() => new Right(value);
 
   @override
   String toString() => 'Left{value: $value}';
@@ -69,6 +74,9 @@ class Right<S, T> extends Either<S, T> {
 
   @override
   Either<S, U> map<U>(Function1<T, U> f) => new Right<S, U>(f(value));
+
+  @override
+  Either<T, S> swap() => new Left(value);
 
   @override
   String toString() => 'Right{value: $value}';
