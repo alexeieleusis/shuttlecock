@@ -104,7 +104,7 @@ void main() {
   });
 
   group('Left', () {
-    final value = 'foo';
+    const value = 'foo';
     Either<String, int> left;
 
     setUp(() {
@@ -147,8 +147,8 @@ void main() {
   });
 
   group('Right', () {
-    final value = 7;
-    final string = 'value';
+    const value = 7;
+    const string = 'value';
     Either<String, int> right;
 
     setUp(() {

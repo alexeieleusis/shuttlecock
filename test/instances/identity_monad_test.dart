@@ -105,7 +105,7 @@ void main() {
   });
 
   group('Left', () {
-    final value = 7;
+    const value = 7;
     IdentityMonad<int> monad;
 
     setUp(() {
