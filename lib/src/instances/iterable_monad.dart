@@ -166,7 +166,7 @@ class IterableMonad<T> extends Monad<T> implements Iterable<T>, Monoid<T> {
 
   // TODO: Implement an ListMonad?
   @override
-  List<T> toList({bool growable: true}) => _data.toList(growable: growable);
+  List<T> toList({bool growable = true}) => _data.toList(growable: growable);
 
   // TODO: Implement a SetMonad?
   @override

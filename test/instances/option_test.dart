@@ -128,7 +128,7 @@ void main() {
     });
 
     test('sum none', () {
-      expect((option + new Option<int>(null)) is None, isTrue);
+      expect(option + new Option<int>(null) is None, isTrue);
     });
 
     test('sum some', () {

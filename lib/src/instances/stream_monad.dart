@@ -15,8 +15,8 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
   /// Creates a Stream that immediately emits an error without emitting.
   StreamMonad.error([Exception exception, StackTrace stackTrace])
-      : _stream = new StreamMonad(
-            (new Future.error(exception, stackTrace).asStream()));
+      : _stream =
+            new StreamMonad(new Future.error(exception, stackTrace).asStream());
 
   /// Creates a stream that generates its elements dynamically from the same
   /// constructor in the Iterable class.
@@ -29,16 +29,16 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
   /// Creates a stream that emits only the provided value and completes.
   StreamMonad.of(T value)
-      : _stream = new StreamMonad((new Future.value(value)).asStream());
+      : _stream = new StreamMonad(new Future.value(value).asStream());
 
   /// Creates a single subscription controller that emits after the specified
   /// delay periodically with the specified period.
   ///
   /// Default period is one second.
   factory StreamMonad.timer(
-      {Duration period: const Duration(seconds: 1),
+      {Duration period = const Duration(seconds: 1),
       T generator(int index),
-      Duration delay: const Duration()}) {
+      Duration delay = const Duration()}) {
     // Controller is single subscription and will never close itself.
     // ignore: close_sinks
     final controller = new StreamController();
@@ -165,7 +165,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
   /// Buffers the events in this stream and emits then in batches of the
   /// specified size. Default value is a noop.
-  StreamMonad<IterableMonad<T>> bufferCount({int size: 1}) {
+  StreamMonad<IterableMonad<T>> bufferCount({int size = 1}) {
     final controller = _stream.isBroadcast
         ? new StreamController<IterableMonad<T>>.broadcast()
         : new StreamController<IterableMonad<T>>();
@@ -513,7 +513,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   /// Builds a special stream that captures all of the items that have been
   /// emitted, and re-emits them as the first items to any new
   /// listener.
-  StreamMonad<T> replay({int buffer: 0, Duration window}) =>
+  StreamMonad<T> replay({int buffer = 0, Duration window}) =>
       new _ReplayStream(_stream, buffer: buffer, window: window);
 
   @override
@@ -640,7 +640,7 @@ class _ReplayStream<T> extends StreamMonad<T> {
 
   bool _isListening = false;
 
-  _ReplayStream(Stream stream, {int buffer: 0, Duration window})
+  _ReplayStream(Stream stream, {int buffer = 0, Duration window})
       : _controller = new StreamController<T>.broadcast(),
         super(stream) {
     _controller.onListen = () {
@@ -672,7 +672,7 @@ class _ReplayStream<T> extends StreamMonad<T> {
   /// conforms to the [ReactiveX Observable Contract](http://reactivex.io/documentation/contract.html).
   @override
   StreamSubscription<T> listen(void onData(T event),
-      {Function onError, void onDone(), bool cancelOnError: true}) {
+      {Function onError, void onDone(), bool cancelOnError = true}) {
     _replayElements.forEach(onData);
     return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);

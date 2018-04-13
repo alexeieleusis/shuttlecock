@@ -133,7 +133,7 @@ void main() {
 
     test('sum failure', () {
       expect(
-          (tryMe + new Try<int>(() => throw new Exception('sum failure')))
+          tryMe + new Try<int>(() => throw new Exception('sum failure'))
               is Failure,
           isTrue);
     });
