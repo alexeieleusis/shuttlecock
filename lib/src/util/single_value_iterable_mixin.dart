@@ -128,7 +128,7 @@ abstract class SingleValueIterableMixin<T, M extends IterableMonad<T>>
   M toEmpty();
 
   @override
-  List<T> toList({bool growable: true}) => [value].toList(growable: growable);
+  List<T> toList({bool growable = true}) => [value].toList(growable: growable);
 
   @override
   Set<T> toSet() => new Set.from([value]);

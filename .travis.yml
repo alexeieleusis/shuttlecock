@@ -1,6 +1,6 @@
 language: dart
 dart:
-- "dev/release/2.0.0-dev.31.0"
+- "dev/release/2.0.0-dev.46.0"
 dart_task:
 - test: --platform vm
 - dartanalyzer: --fatal-warnings lib

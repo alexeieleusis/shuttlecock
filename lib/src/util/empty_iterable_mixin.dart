@@ -108,7 +108,7 @@ abstract class EmptyIterableMixin<T, M extends IterableMonad<T>>
   M takeWhile(bool test(T value)) => this as M;
 
   @override
-  List<T> toList({bool growable: true}) => [];
+  List<T> toList({bool growable = true}) => [];
 
   @override
   Set<T> toSet() => new Set.identity();
