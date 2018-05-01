@@ -50,10 +50,11 @@ void main() {
               .app(pureDecorate)
               .toList(),
           await _returnMonad(helloWorld).app(pureComposition).toList());
+      final curried = curry<Function1<int, String>, Function1<String, int>,
+          Function1<String, String>>(compose, decorate);
       expect(
           await _returnMonad(helloWorld)
-              .app(pureStringToLength
-                  .app(_returnMonad(curry(compose, decorate))))
+              .app(pureStringToLength.app(_returnMonad(curried)))
               .toList(),
           await _returnMonad(helloWorld)
               .app(pureStringToLength)
