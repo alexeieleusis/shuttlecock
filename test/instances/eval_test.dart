@@ -41,10 +41,11 @@ void main() {
 
         expect(monadInstance.app(pureStringToLength).app(pureDecorate).value,
             monadInstance.app(pureComposition).value);
+        final curried = curry<Function1<int, String>, Function1<String, int>,
+            Function1<String, String>>(compose, decorate);
         expect(
             monadInstance
-                .app(pureStringToLength
-                    .app(_returnMonad(curry(compose, decorate))))
+                .app(pureStringToLength.app(_returnMonad(curried)))
                 .value,
             monadInstance.app(pureStringToLength).app(pureDecorate).value);
       });
