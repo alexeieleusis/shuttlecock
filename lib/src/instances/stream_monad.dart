@@ -41,7 +41,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
       Duration delay = const Duration()}) {
     // Controller is single subscription and will never close itself.
     // ignore: close_sinks
-    final controller = new StreamController();
+    final controller = new StreamController<T>();
     controller.onListen = () {
       new Future.delayed(delay).then((_) {
         controller.addStream(new Stream.periodic(period, generator));
@@ -589,11 +589,12 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
     StreamSubscription<T> thisSubscription;
     StreamSubscription<S> otherSubscription;
 
-    void onError(Exception error, StackTrace stacktrace) {
+    FutureOr onError(Object error, StackTrace stacktrace) {
       if (controller.isClosed) {
-        return;
+        return null;
       }
       controller.addError(error, stacktrace);
+      return null;
     }
 
     void onDone() {
@@ -605,7 +606,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
     void addEvent(List ts, List ss, StreamController<Tuple2> controller) {
       final t = ts.removeAt(0);
       final s = ss.removeAt(0);
-      controller.add(new Tuple2(t, s));
+      controller.add(new Tuple2<T, S>(t, s));
     }
 
     void processT(T element) {

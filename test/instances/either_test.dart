@@ -126,15 +126,13 @@ void main() {
     });
 
     test('flatMap left', () {
-      final Either<String, int> apply =
-          left.flatMap((i) => new Left<String, int>('$value$i'));
+      final apply = left.flatMap((i) => new Left<String, int>('$value$i'));
       expect(apply is Left, isTrue);
       expect((apply as Left).value, value);
     });
 
     test('flatMap right', () {
-      final Either<String, int> apply =
-          left.flatMap((i) => new Right<String, int>(i + 1));
+      final apply = left.flatMap((i) => new Right<String, int>(i + 1));
       expect(apply is Left, isTrue);
       expect((apply as Left).value, value);
     });
@@ -170,15 +168,13 @@ void main() {
     });
 
     test('flatMap left', () {
-      final Either<String, int> apply =
-          right.flatMap((i) => new Left<String, int>(string));
+      final apply = right.flatMap((i) => new Left<String, int>(string));
       expect(apply is Left, isTrue);
       expect((apply as Left).value, string);
     });
 
     test('flatMap right', () {
-      final Either<String, int> apply =
-          right.flatMap((i) => new Right<String, int>(i + 1));
+      final apply = right.flatMap((i) => new Right<String, int>(i + 1));
       expect(apply is Right, isTrue);
       expect((apply as Right).value, value + 1);
     });

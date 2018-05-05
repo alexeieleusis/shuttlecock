@@ -8,6 +8,9 @@ abstract class Either<S, T> extends Monad<T> {
   dynamic /*S | T*/ get value;
 
   Either<T, S> swap();
+
+  @override
+  Either<S, U> flatMap<U>(covariant Function1<T, Either<S, U>> f);
 }
 
 /// Left set, usually denotes the absence of a value, e.g. en error message.

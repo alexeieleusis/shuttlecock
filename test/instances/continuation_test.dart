@@ -122,9 +122,11 @@ void main() {
       Continuation<int, int> pythagorasCont(int x, int y) => squareCont(x)
           .flatMap((x1) => squareCont(y).flatMap((y1) => addCont(x1, y1)));
 
-      expect(pythagorasCont(3, 4)(identity as Function1<int, int>), 25);
+      // ignore: avoid_types_on_closure_parameters
+      expect(pythagorasCont(3, 4)((int i) => i), 25);
       expect(pythagorasCont(3, 4)(_timesTwo), 50);
-      expect(pythagorasCont(5, 12)(identity as Function1<int, int>), 169);
+      // ignore: avoid_types_on_closure_parameters
+      expect(pythagorasCont(5, 12)((int i) => i), 169);
     });
   });
 
@@ -133,7 +135,8 @@ void main() {
       Continuation<int, int> _callCCSquare(int n) =>
           Continuation.callCC<int, int, int>((f) => f(n * n));
 
-      expect(_callCCSquare(2)(identity as Function1<int, int>), 4);
+      // ignore: avoid_types_on_closure_parameters
+      expect(_callCCSquare(2)((int i) => i), 4);
       expect(_callCCSquare(3)(_timesTwo), 18);
     });
   });
