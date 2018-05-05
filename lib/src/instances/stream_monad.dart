@@ -335,7 +335,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
   @override
   FutureMonad<T> firstWhere(bool Function(T element) test,
-      {T Function() orElse}) =>
+          {T Function() orElse}) =>
       new FutureMonad(_stream.firstWhere(test, orElse: orElse));
 
   @override
@@ -437,7 +437,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
   @override
   FutureMonad<T> lastWhere(bool Function(T element) test,
-      {T Function() orElse}) =>
+          {T Function() orElse}) =>
       new FutureMonad(_stream.lastWhere(test, orElse: orElse));
 
   @override
