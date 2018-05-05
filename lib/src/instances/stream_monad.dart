@@ -192,7 +192,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
   }
 
   @override
-  Stream<R> cast<R>() => new StreamMonad(_stream.cast<R>());
+  StreamMonad<R> cast<R>() => new StreamMonad(_stream.cast<R>());
 
   /// Combines this and another to create an stream whose events are
   /// calculated from the latest values of each stream.
