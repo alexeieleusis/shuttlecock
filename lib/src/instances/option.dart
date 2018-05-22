@@ -1,3 +1,4 @@
+import 'package:meta/meta.dart';
 import 'package:shuttlecock/shuttlecock.dart';
 import 'package:shuttlecock/src/util/empty_iterable_mixin.dart';
 import 'package:shuttlecock/src/util/single_value_iterable_mixin.dart';
@@ -54,6 +55,7 @@ class None<T> extends Option<T> with EmptyIterableMixin<T, Option<T>> {
 /// Represents an optional value. It satisfies the type equation FX = 1 + X,
 /// where the functor F takes a set to a point plus that set. This is known as
 /// Maybe in Haskell.
+@immutable
 abstract class Option<T> extends Monad<T>
     with ValueWrapper<T, Option<T>>
     implements Monoid<T>, IterableMonad<T> {

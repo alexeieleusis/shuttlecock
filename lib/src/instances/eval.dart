@@ -2,7 +2,7 @@ import 'package:meta/meta.dart';
 import 'package:shuttlecock/src/category_theory/functions.dart';
 import 'package:shuttlecock/src/category_theory/monad.dart';
 
-typedef T EvalComputation<T>();
+typedef EvalComputation<T> = T Function();
 
 class Always<T> extends _WithComputation<T> {
   Always(EvalComputation<T> computation) : super(computation);
