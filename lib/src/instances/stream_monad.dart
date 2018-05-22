@@ -517,7 +517,8 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
       new _ReplayStream(_stream, buffer: buffer, window: window);
 
   @override
-  StreamMonad<R> retype<R>() => new StreamMonad<R>(_stream.retype<R>());
+  @Deprecated('Use cast instead.')
+  StreamMonad<R> retype<R>() => new StreamMonad<R>(_stream.cast<R>());
 
   /// Applies an accumulator function over the this stream, and returns each
   /// intermediate result. Similar to what fold does on Iterable but eatch

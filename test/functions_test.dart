@@ -4,16 +4,19 @@ import 'package:test/test.dart';
 void main() {
   group('identity', () {
     test('is endofunction', () {
-      expect(identity is EndoFunction, isTrue);
+      // ignore: omit_local_variable_types
+      const EndoFunction<int> f = identity;
+      expect(f(5), 5);
     });
 
     test('is function of arity 1', () {
-      expect(identity is Function1, isTrue);
+      // ignore: omit_local_variable_types
+      const Function1<int, int> f = identity;
+      expect(f(5), 5);
     });
 
     test('after function does nothing', () {
       num halves(int x) => x / 2;
-      expect(halves is Function1, isTrue);
       final idAfterHalves = compose(identity, halves);
       for (var i = 0; i < 100; i++) {
         expect(halves(i), equals(idAfterHalves(i)));
@@ -22,7 +25,6 @@ void main() {
 
     test('before function does nothing', () {
       num halves(int x) => x / 2;
-      expect(halves is Function1, isTrue);
       // ignore: omit_local_variable_types
       final Function1<int, num> idBeforeHalves = compose(identity, halves);
       for (var i = 0; i < 100; i++) {

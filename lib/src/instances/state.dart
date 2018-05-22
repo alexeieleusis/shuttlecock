@@ -4,7 +4,7 @@ import 'package:tuple/tuple.dart';
 RunState<S, A> _buildRunState<S, A>(A a) => (s) => new Tuple2<A, S>(a, s);
 
 /// A function that performs computations on state.
-typedef Tuple2<A, S> RunState<S, A>(S s);
+typedef RunState<S, A> = Tuple2<A, S> Function(S s);
 
 /// A State s a is a stateful computation that manipulates a state of type s and
 /// has a result of type a. An instance of the State monad is a function from a

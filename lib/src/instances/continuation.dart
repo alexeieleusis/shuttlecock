@@ -1,7 +1,7 @@
 import 'package:shuttlecock/shuttlecock.dart';
 
 /// (A -> R) -> R
-typedef R ContinuationFunction<R, A>(Function1<A, R> f);
+typedef ContinuationFunction<R, A> = R Function(Function1<A, R> f);
 
 /// Continuations represent the future of a computation, as a function from an
 /// intermediate result to the final result. In continuation-passing style,
