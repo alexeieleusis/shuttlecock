@@ -16,7 +16,8 @@ class LensCase<TWhole> {
     final evolutions = new StreamController.broadcast();
     void evolver<TWhole>(EndoFunction<TWhole> evolution) {
       evolutions.add(evolution);
-    };
+    }
+
     _evolver = evolver;
     _stream = new StreamMonad<EndoFunction<TWhole>>.of(identity)
         .asBroadcastStream()
@@ -29,8 +30,7 @@ class LensCase<TWhole> {
   /// Builds a new instance given a sink of evolutions and a stream of values.
   // Do we want to make this constructor private to ensure we always know the
   // stream repeats its last value and is broadcast?
-  LensCase.on(
-      Evolver<TWhole> evolver, Stream<TWhole> stream)
+  LensCase.on(Evolver<TWhole> evolver, Stream<TWhole> stream)
       : this._evolver = evolver,
         this._stream = stream;
 
