@@ -28,7 +28,7 @@ void main() {
       final stateD = stateC.getSight(dFromC, setD);
       stateD.stream.forEach((e) => print('stateD $e'));
 
-      stateD.set(initD.copy(tag: '2'));
+      stateD.update(initD.copy(tag: '2'));
       stateD.evolve((d) => d.copy(tag: '3'));
     });
   });
