@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:shuttlecock/shuttlecock.dart';
 
+// (a -> a) -> ()
 typedef void Evolver<A>(EndoFunction<A> evolution);
 
 class LensCase<TWhole> {
@@ -13,6 +14,7 @@ class LensCase<TWhole> {
 
   /// Builds a new instance given an initial state.
   LensCase.of(TWhole initialState) {
+    print('LensCase.of');
     final evolutions = new StreamController.broadcast();
     void evolver<TWhole>(EndoFunction<TWhole> evolution) {
       evolutions.add(evolution);
@@ -41,20 +43,22 @@ class LensCase<TWhole> {
 
   /// a -> ()
   void set(TWhole a) {
+    print('LensCase set $a');
     _evolver((oldA) => a);
   }
 
   /// (a -> b) -> (b -> a -> a) -> LensCase b
   LensCase<TPiece> getSight<TPiece>(
       TPiece getter(TWhole whole), TWhole setter(TPiece piece, TWhole whole)) {
+    print('LensCase.getSight.getter');
     // evolutions :: Stream (a -> a)
     // sink :: Stream (b -> b)
     void sinker(TPiece evolve(TPiece piece1)) {
-      TWhole newEvol(TWhole whole) => setter(getter(whole), whole);
+      TWhole newEvol(TWhole whole) => setter(evolve(getter(whole)), whole);
       _evolver(newEvol);
     }
 
-    return new LensCase.on(sinker, _stream.map(getter));
+    return new LensCase.on(sinker, _stream.map(getter).distinct());
   }
 
   ///   (a -> b) -> (b -> a -> a)
