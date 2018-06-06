@@ -42,7 +42,7 @@ class LensCase<TWhole> {
   }
 
   /// a -> ()
-  void set(TWhole a) {
+  void update(TWhole a) {
     print('LensCase set $a');
     _evolver((oldA) => a);
   }
