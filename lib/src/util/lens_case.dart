@@ -61,6 +61,11 @@ class LensCase<TWhole> {
     return new LensCase.on(sinker, _stream.map(getter).distinct());
   }
 
+  /// getSightSequence???
+  /// (a -> [b]) -> ([b] -> a -> a) -> [LensCase b]
+
+
+
   ///   (a -> b) -> (b -> a -> a)
   /// ~ (a -> b) -> (a -> b -> a)
   /// ~ a -> (b, b -> a)

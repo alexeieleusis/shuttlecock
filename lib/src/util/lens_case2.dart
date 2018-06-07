@@ -60,4 +60,13 @@ class LensCase<TWhole> {
 
     return new LensCase(getter(_value), sinker);
   }
+
+  /// getSightSequence???
+  /// (a -> [b]) -> ([b] -> a -> a) -> [LensCase b]
+  Iterable<LensCase<TPiece>> getSightSequence<TPiece>(
+      Iterable<TPiece> getter(TWhole whole),
+      TWhole setter(Iterable<TPiece> pieces, TWhole whole)
+      ) {
+    return null;
+  }
 }
