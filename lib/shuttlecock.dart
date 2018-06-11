@@ -19,5 +19,6 @@ export 'src/instances/state.dart';
 export 'src/instances/stream_monad.dart';
 export 'src/instances/try.dart';
 export 'src/instances/writer.dart';
+export 'src/util/lens_case.dart';
 export 'src/util/store.dart';
 export 'src/util/value_wrapper.dart';

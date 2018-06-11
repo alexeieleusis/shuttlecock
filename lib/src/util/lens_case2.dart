@@ -5,7 +5,6 @@ import 'package:shuttlecock/shuttlecock.dart';
 typedef void Evolver<A>(EndoFunction<A> evolution);
 
 class LensCaseFountain<TWhole> {
-
   Stream<LensCase<TWhole>> _stream;
 
   LensCaseFountain(TWhole initialState) {
@@ -65,8 +64,7 @@ class LensCase<TWhole> {
   /// (a -> [b]) -> ([b] -> a -> a) -> [LensCase b]
   Iterable<LensCase<TPiece>> getSightSequence<TPiece>(
       Iterable<TPiece> getter(TWhole whole),
-      TWhole setter(Iterable<TPiece> pieces, TWhole whole)
-      ) {
+      TWhole setter(Iterable<TPiece> pieces, TWhole whole)) {
     return null;
   }
 }

@@ -424,7 +424,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
   @override
   FutureMonad<Null> forEach(void action(T element)) =>
-      new FutureMonad(_stream.forEach(action));
+      new FutureMonad<Null>(_stream.forEach(action));
 
   @override
   // ignore: avoid_annotating_with_dynamic
