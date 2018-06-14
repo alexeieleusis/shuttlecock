@@ -39,6 +39,7 @@ class None<T> extends Option<T> with EmptyIterableMixin<T, Option<T>> {
   Option<S> map<S>(Function1<T, S> f) => new None<S>();
 
   @override
+  // ignore: override_on_non_overriding_method
   Iterable<T> retype<T>() {
     throw new UnimplementedError('retype');
   }
@@ -141,6 +142,7 @@ class Some<T> extends Option<T> with SingleValueIterableMixin<T, Option<T>> {
   Option<S> map<S>(Function1<T, S> f) => new Some<S>(f(value));
 
   @override
+  // ignore: override_on_non_overriding_method
   Iterable<T> retype<T>() {
     throw new UnimplementedError('retype');
   }
