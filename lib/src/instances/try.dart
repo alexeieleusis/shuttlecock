@@ -66,6 +66,7 @@ class Failure<T> extends Try<T> with EmptyIterableMixin<T, Try<T>> {
       onFailure(error);
 
   @override
+  // ignore: override_on_non_overriding_method
   Iterable<T> retype<T>() {
     throw new UnimplementedError('retype');
   }
@@ -139,6 +140,7 @@ class Success<T> extends Try<T> with SingleValueIterableMixin<T, Try<T>> {
   Try<T> recoverWith(Function1<Exception, Try<T>> onFailure) => this;
 
   @override
+  // ignore: override_on_non_overriding_method
   Iterable<T> retype<T>() {
     throw new UnimplementedError('retype');
   }

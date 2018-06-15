@@ -518,6 +518,7 @@ class StreamMonad<T> extends Monad<T> implements Stream<T> {
 
   @override
   @Deprecated('Use cast instead.')
+  // ignore: override_on_non_overriding_method
   StreamMonad<R> retype<R>() => new StreamMonad<R>(_stream.cast<R>());
 
   /// Applies an accumulator function over the this stream, and returns each
